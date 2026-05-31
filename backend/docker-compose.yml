@@ -1,0 +1,50 @@
+services:
+  backend:
+    container_name: bookmyvenue_backend
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8011:8000"
+    volumes:
+      - .:/bookmyvenue
+    env_file:
+      - .env
+    depends_on:
+      - db
+      - redis
+    command: python manage.py runserver 0.0.0.0:8000
+
+  db:
+    image: postgres:16
+    container_name: bookmyvenue_db
+    ports:
+      - "5441:5432"
+    volumes:
+      - bookmyvenue_db:/var/lib/postgresql/data/
+    env_file:
+      - .env
+
+  redis:
+    image: redis:7-alpine
+    container_name: bookmyvenue_redis
+    restart: unless-stopped
+    ports:
+      - "6380:6379"
+
+  celery:
+    container_name: bookmyvenue_celery
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - .:/bookmyvenue
+    env_file:
+      - .env
+    depends_on:
+      - db
+      - redis
+    command: celery -A config worker --loglevel=info
+
+volumes:
+  bookmyvenue_db:
