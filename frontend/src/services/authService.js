@@ -1,13 +1,21 @@
-import axios from "axios";
+import api from "../api/axios";
 
-const API_BASE_URL =
-  "http://localhost:8011/api/v1";
-
-export const signupUser = (
-  data
-) => {
-  return axios.post(
-    `${API_BASE_URL}/accounts/signup/`,
-    data
+export const signupUser = async (payload) => {
+  const response = await api.post(
+    "/accounts/signup/",
+    payload
   );
+
+  return response.data;
+};
+
+export const verifySignupOtp = async (
+  payload
+) => {
+  const response = await api.post(
+    "/accounts/verify-signup-otp/",
+    payload
+  );
+
+  return response.data;
 };
