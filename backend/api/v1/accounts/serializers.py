@@ -208,3 +208,16 @@ class UserBasicSerializer(serializers.ModelSerializer):
             "role",
             "is_email_verified",
         ]
+
+
+class CurrentUserSerializer(
+    serializers.ModelSerializer
+):
+
+    class Meta:
+        model = User
+
+        fields = [
+            "email",
+            "role",
+        ]
