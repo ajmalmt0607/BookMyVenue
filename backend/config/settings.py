@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     # Local apps
     "apps.common",
     "apps.accounts",
+    "apps.venues",
 ]
 
 
@@ -181,6 +182,9 @@ STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
 STORAGES = {
+    "default": {
+        "BACKEND": "django.core.files.storage.FileSystemStorage",
+    },
     "staticfiles": {
         "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
     },
@@ -214,6 +218,11 @@ CELERY_RESULT_SERIALIZER = "json"
 CELERY_TIMEZONE = TIME_ZONE
 CELERY_TASK_IGNORE_RESULT = env.bool("CELERY_TASK_IGNORE_RESULT", default=True)
 CELERY_TASK_TRACK_STARTED = True
+
+LOCATION_PROVIDER = env(
+    "LOCATION_PROVIDER",
+    default="OSM",
+)
 
 
 # Default primary key field type

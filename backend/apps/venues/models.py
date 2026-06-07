@@ -1,0 +1,104 @@
+from django.db import models
+from django.conf import settings
+from apps.common.functions import generate_slug
+from apps.common.models import BaseModel
+
+
+class VenueType(BaseModel):
+    name = models.CharField(max_length=100, unique=True)
+    description = models.TextField(blank=True, null=True)
+    is_active = models.BooleanField(default=True)
+    slug = models.SlugField(unique=True, blank=True)
+
+    class Meta:
+        db_table = "venues_venue_type"
+        ordering = ["-created_at"]
+        verbose_name = "Venue Type"
+        verbose_name_plural = "Venue Types"
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            self.slug = generate_slug(self.name)
+
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return self.name
+    
+
+class Amenity(BaseModel):
+    name = models.CharField(max_length=100, unique=True)
+    icon = models.CharField(max_length=100, blank=True, null=True)
+    is_active = models.BooleanField(default=True)
+
+    class Meta:
+        db_table = "venues_amenity"
+        ordering = ["-created_at"]
+        verbose_name = "Amenity"
+        verbose_name_plural = "Amenities"
+
+    def __str__(self):
+        return self.name
+    
+
+class Venue(BaseModel):
+    class Status(models.TextChoices):
+        PENDING = "PENDING", "Pending"
+        APPROVED = "APPROVED", "Approved"
+        REJECTED = "REJECTED", "Rejected"
+
+    owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="venues")
+    venue_type = models.ForeignKey(VenueType, on_delete=models.PROTECT, related_name="venues")
+    amenities = models.ManyToManyField(Amenity, blank=True, related_name="venues")
+    name = models.CharField(max_length=255)
+    description = models.TextField()
+    # Manual Address
+    venue_address = models.TextField()
+    location_name = models.CharField(max_length=255, db_index=True)
+    city = models.CharField(max_length=100, db_index=True)
+    district = models.CharField(max_length=100, blank=True, null=True)
+    state = models.CharField(max_length=100)
+    country = models.CharField(max_length=100, default="India")
+    # From Google/OpenStreetMap
+    location_address = models.TextField()
+    latitude = models.DecimalField(max_digits=10, decimal_places=7, blank=True, null=True)
+    longitude = models.DecimalField(max_digits=10, decimal_places=7, blank=True, null=True)
+    min_capacity = models.PositiveIntegerField()
+    max_capacity = models.PositiveIntegerField()
+    price_per_day = models.DecimalField(max_digits=12, decimal_places=2)
+    rating = models.DecimalField(max_digits=3, decimal_places=2, default=0)
+    total_reviews = models.PositiveIntegerField(default=0)
+    status = models.CharField(max_length=20, choices=Status.choices, default=Status.PENDING)
+    is_featured = models.BooleanField(default=False)
+    is_active = models.BooleanField(default=True)
+    slug = models.SlugField(unique=True, blank=True)
+
+    class Meta:
+        db_table = "venues_venue"
+        indexes = [
+            models.Index(fields=["city"]),
+            models.Index(fields=["location_name"]),
+            models.Index(fields=["status"]),
+            models.Index(fields=["price_per_day"]),
+        ]
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            self.slug = generate_slug(self.name)
+
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return self.name
+    
+
+class VenueImage(BaseModel):
+    venue = models.ForeignKey(Venue, on_delete=models.CASCADE, related_name="images")
+    image = models.ImageField(upload_to="venues/images/")
+    is_primary = models.BooleanField(default=False)
+
+    class Meta:
+        db_table = "venues_venue_image"
+
+    def __str__(self):
+        return f"{self.venue.name} Image"
