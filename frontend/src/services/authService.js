@@ -19,3 +19,15 @@ export const verifySignupOtp = async (
 
   return response.data;
 };
+
+export const loginUser = async (
+  payload
+) => {
+  const response =
+    await api.post(
+      "/accounts/login/",
+      payload
+    );
+
+  return response.data;
+};

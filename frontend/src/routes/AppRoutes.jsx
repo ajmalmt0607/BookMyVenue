@@ -4,7 +4,9 @@ import {
 } from "react-router-dom";
 
 import HomePage from "../pages/Home/HomePage";
+
 import SignupPage from "../pages/auth/SignupPage";
+import LoginPage from "../pages/auth/LoginPage";
 
 import PublicRoute from "./PublicRoute";
 
@@ -12,7 +14,14 @@ const AppRoutes = () => {
   return (
     <Routes>
 
-      {/* Public */}
+      {/* Home */}
+
+      <Route
+        path="/"
+        element={<HomePage />}
+      />
+
+      {/* Signup */}
 
       <Route
         path="/signup"
@@ -23,11 +32,15 @@ const AppRoutes = () => {
         }
       />
 
-      {/* Public Home */}
+      {/* Login */}
 
       <Route
-        path="/"
-        element={<HomePage />}
+        path="/login"
+        element={
+          <PublicRoute>
+            <LoginPage />
+          </PublicRoute>
+        }
       />
 
     </Routes>
