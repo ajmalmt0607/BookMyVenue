@@ -1,6 +1,6 @@
 from django.urls import path
 
-from api.v1.venues.views import LocationSearchAPIView
+from api.v1.venues.views import LocationSearchAPIView, VenueListAPIView
 
 
 
@@ -9,5 +9,9 @@ urlpatterns = [
         "locations/search/",
         LocationSearchAPIView.as_view(),
         name="location-search",
+    ),
+    path(
+        "venues/",
+        VenueListAPIView.as_view(),
     ),
 ]
