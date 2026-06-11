@@ -5,6 +5,7 @@ import {
   Menu,
   CircleUserRound,
 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 import Button from "../ui/Button";
 import CustomNavLink from "../ui/NavLink";
@@ -15,6 +16,7 @@ import UserMenu from "../navbar/UserMenu";
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const navigate = useNavigate();
 
   return (
     <>
@@ -49,6 +51,7 @@ const Navbar = () => {
                 cursor-pointer
                 shrink-0
               "
+              onClick={() => navigate("/")}
             >
               <Building2
                 size={30}

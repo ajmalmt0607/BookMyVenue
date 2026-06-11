@@ -9,19 +9,23 @@ import SignupPage from "../pages/auth/SignupPage";
 import LoginPage from "../pages/auth/LoginPage";
 
 import PublicRoute from "./PublicRoute";
+import VenueListPage from "../pages/VenueListPage";
 
 const AppRoutes = () => {
   return (
     <Routes>
 
-      {/* Home */}
+      {/* Public */}
 
       <Route
         path="/"
         element={<HomePage />}
       />
 
-      {/* Signup */}
+      <Route
+        path="/venues"
+        element={<VenueListPage />}
+      />
 
       <Route
         path="/signup"
@@ -31,8 +35,6 @@ const AppRoutes = () => {
           </PublicRoute>
         }
       />
-
-      {/* Login */}
 
       <Route
         path="/login"

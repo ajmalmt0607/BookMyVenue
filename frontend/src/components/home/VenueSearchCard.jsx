@@ -1,5 +1,7 @@
 import { useState } from "react";
 
+import { useNavigate } from "react-router-dom";
+
 import {
   ChevronDown,
   MapPin,
@@ -9,6 +11,9 @@ import {
 } from "lucide-react";
 
 const VenueSearchCard = () => {
+
+  const navigate = useNavigate();
+
   const [searchData, setSearchData] = useState({
     venueType: "",
     location: "",
@@ -24,9 +29,34 @@ const VenueSearchCard = () => {
   };
 
   const handleSearch = () => {
-    console.log(searchData);
 
-    // Future API Integration
+    const queryParams =
+      new URLSearchParams();
+
+    if (searchData.location) {
+      queryParams.append(
+        "location",
+        searchData.location
+      );
+    }
+
+    if (searchData.venueType) {
+      queryParams.append(
+        "venue_type",
+        searchData.venueType
+      );
+    }
+
+    if (searchData.guests) {
+      queryParams.append(
+        "guests",
+        searchData.guests
+      );
+    }
+
+    navigate(
+      `/venues?${queryParams.toString()}`
+    );
   };
 
   return (
@@ -46,12 +76,14 @@ const VenueSearchCard = () => {
           gap-5
         "
       >
+
         {/* Venue Type */}
 
         <div className="relative">
 
           <select
             name="venueType"
+            value={searchData.venueType}
             onChange={handleChange}
             className="
               w-full
@@ -66,29 +98,31 @@ const VenueSearchCard = () => {
               outline-none
               cursor-pointer
               focus:border-red-500
+              focus:ring-2
+              focus:ring-red-100
             "
           >
             <option value="">
               All Venues
             </option>
 
-            <option value="BANQUET_HALL">
+            <option value="banquet-hall">
               Banquet Hall
             </option>
 
-            <option value="WEDDING_HALL">
+            <option value="wedding-hall">
               Wedding Hall
             </option>
 
-            <option value="AUDITORIUM">
-              Auditorium
-            </option>
-
-            <option value="CONFERENCE_ROOM">
+            <option value="conference-room">
               Conference Room
             </option>
 
-            <option value="RESORT">
+            <option value="auditorium">
+              Auditorium
+            </option>
+
+            <option value="resort">
               Resort
             </option>
 
@@ -126,6 +160,7 @@ const VenueSearchCard = () => {
           <input
             type="text"
             name="location"
+            value={searchData.location}
             placeholder="Enter Location"
             onChange={handleChange}
             className="
@@ -138,6 +173,8 @@ const VenueSearchCard = () => {
               pr-4
               outline-none
               focus:border-red-500
+              focus:ring-2
+              focus:ring-red-100
             "
           />
 
@@ -161,6 +198,7 @@ const VenueSearchCard = () => {
           <input
             type="date"
             name="date"
+            value={searchData.date}
             onChange={handleChange}
             className="
               w-full
@@ -172,6 +210,8 @@ const VenueSearchCard = () => {
               pr-4
               outline-none
               focus:border-red-500
+              focus:ring-2
+              focus:ring-red-100
             "
           />
 
@@ -196,6 +236,7 @@ const VenueSearchCard = () => {
             type="number"
             min="1"
             name="guests"
+            value={searchData.guests}
             placeholder="Guests"
             onChange={handleChange}
             className="
@@ -208,6 +249,8 @@ const VenueSearchCard = () => {
               pr-4
               outline-none
               focus:border-red-500
+              focus:ring-2
+              focus:ring-red-100
             "
           />
 
@@ -229,6 +272,8 @@ const VenueSearchCard = () => {
             justify-center
             gap-2
             transition-all
+            duration-300
+            hover:shadow-lg
           "
         >
           <Search size={18} />
