@@ -2,8 +2,10 @@ from django.contrib import admin
 
 from .models import (
     Amenity,
+    Booking,
     Venue,
     VenueImage,
+    VenueTimeSlot,
     VenueType,
 )
 
@@ -181,6 +183,7 @@ class VenueImageAdmin(admin.ModelAdmin):
         "venue",
         "is_primary",
         "created_at",
+        "display_order"
     )
 
     list_filter = (
@@ -195,4 +198,54 @@ class VenueImageAdmin(admin.ModelAdmin):
         "id",
         "created_at",
         "updated_at",
+    )
+
+
+@admin.register(VenueTimeSlot)
+class VenueTimeSlotAdmin(admin.ModelAdmin):
+
+    list_display = (
+        "venue",
+        "name",
+        "start_time",
+        "end_time",
+        "price",
+        "is_active",
+    )
+
+    list_filter = (
+        "is_active",
+    )
+
+    search_fields = (
+        "venue__name",
+        "name",
+    )
+
+
+@admin.register(Booking)
+class BookingAdmin(admin.ModelAdmin):
+
+    list_display = (
+        "venue",
+        "customer",
+        "booking_date",
+        "guests",
+        "total_amount",
+        "status",
+    )
+
+    list_filter = (
+        "status",
+        "booking_date",
+    )
+
+    search_fields = (
+        "venue__name",
+        "customer__email",
+    )
+
+    autocomplete_fields = (
+        "venue",
+        "customer",
     )

@@ -193,6 +193,120 @@ class LoginSerializer(serializers.Serializer):
         return attrs
 
 
+class ForgotPasswordSerializer(serializers.Serializer):
+
+    email = serializers.EmailField()
+
+    def validate_email(self, value):
+
+        email = value.lower().strip()
+
+        if not User.objects.filter(email=email).exists():
+            raise serializers.ValidationError(
+                "No account found with this email."
+            )
+
+        return email
+    
+
+class VerifyForgotPasswordOTPSerializer(
+    serializers.Serializer
+):
+
+    email = serializers.EmailField()
+
+    otp = serializers.CharField(
+        max_length=6
+    )
+
+    def validate(self, attrs):
+
+        email = attrs["email"]
+
+        otp = attrs["otp"]
+
+        otp_instance = EmailOTP.objects.filter(
+            email=email,
+            otp=otp,
+            purpose=EmailOTP.Purpose.FORGOT_PASSWORD,
+            is_verified=False,
+        ).first()
+
+        if not otp_instance:
+            raise serializers.ValidationError(
+                {
+                    "otp":
+                    "Invalid OTP."
+                }
+            )
+
+        if otp_instance.is_expired():
+            raise serializers.ValidationError(
+                {
+                    "otp":
+                    "OTP expired."
+                }
+            )
+
+        attrs["otp_instance"] = otp_instance
+
+        return attrs
+    
+
+class ResetPasswordSerializer(
+    serializers.Serializer
+):
+
+    email = serializers.EmailField()
+
+    password = serializers.CharField(
+        min_length=8,
+        write_only=True,
+    )
+
+    confirm_password = serializers.CharField(
+        min_length=8,
+        write_only=True,
+    )
+
+    def validate(self, attrs):
+
+        if (
+            attrs["password"]
+            != attrs["confirm_password"]
+        ):
+            raise serializers.ValidationError(
+                {
+                    "confirm_password":
+                    "Passwords do not match."
+                }
+            )
+
+        email = attrs["email"]
+
+        otp_verified = (
+            EmailOTP.objects.filter(
+                email=email,
+                purpose=EmailOTP.Purpose.FORGOT_PASSWORD,
+                is_verified=True,
+            )
+            .order_by("-created_at")
+            .first()
+        )
+
+        if not otp_verified:
+            raise serializers.ValidationError(
+                {
+                    "email":
+                    "OTP verification required."
+                }
+            )
+
+        attrs["otp_verified"] = otp_verified
+
+        return attrs
+
+
 class UserBasicSerializer(serializers.ModelSerializer):
     full_name = serializers.CharField(read_only=True)
 
