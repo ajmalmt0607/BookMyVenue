@@ -12,7 +12,6 @@ import VenueSortDropdown from "../components/venue/VenueSortDropdown";
 import VenuePagination from "../components/venue/VenuePagination";
 
 import { getVenues } from "../services/venueService";
-import Navbar from "../components/layout/Navbar";
 
 const VenueListPage = () => {
 
@@ -88,8 +87,6 @@ const VenueListPage = () => {
   }, [searchParams]);
 
   return (
-    <>
-        <Navbar />
         <section
         className="
             max-w-7xl
@@ -209,7 +206,6 @@ const VenueListPage = () => {
         </div>
 
         </section>
-    </>
   );
 };
 

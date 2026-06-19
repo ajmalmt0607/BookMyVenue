@@ -1,4 +1,5 @@
 import { useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 
 import {
   MapPin,
@@ -7,32 +8,21 @@ import {
 } from "lucide-react";
 
 const VenueCard = ({ venue }) => {
-  const navigate = useNavigate();
-
-  const handleVenueClick = () => {
-    navigate(`/venues/${venue.slug}`);
-  };
 
   return (
-    <div
-      onClick={handleVenueClick}
+    <Link
       className="
         bg-white
-        rounded-2xl
         overflow-hidden
-        border
-        border-gray-100
-        hover:shadow-xl
         transition-all
         duration-300
         cursor-pointer
         group
-        shadow
       "
     >
       {/* Image */}
 
-      <div className="relative overflow-hidden">
+      <div className="relative rounded-2xl overflow-hidden">
 
         <img
           src={`http://localhost:8011${venue.image}`}
@@ -197,24 +187,27 @@ const VenueCard = ({ venue }) => {
 
           </div>
 
-          <button
+            <Link
+            to={`/venues/${venue.slug}`}
             className="
-              bg-red-600
-              hover:bg-red-700
-              text-white
-              text-sm
-              font-medium
-              px-4
-              py-2
-              rounded-lg
+                block
+                text-center
+                text-sm
+                py-2
+                px-3
+                border
+                rounded-xl
+                text-white
+                bg-red-600
+                hover:bg-red-500
             "
-          >
+            >
             View Details
-          </button>
+            </Link>
         </div>
 
       </div>
-    </div>
+    </Link>
   );
 };
 

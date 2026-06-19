@@ -164,9 +164,7 @@ class VerifyForgotPasswordOTPAPIView(
         )
 
 
-class ResetPasswordAPIView(
-    APIView
-):
+class ResetPasswordAPIView(APIView):
 
     permission_classes = [AllowAny]
 

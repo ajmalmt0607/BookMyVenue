@@ -60,7 +60,9 @@ const VenueFilterSidebar = () => {
       1
     );
 
-    setSearchParams(params);
+    setSearchParams(params, {
+        replace: true,
+    });
   };
 
   const clearFilters = () => {

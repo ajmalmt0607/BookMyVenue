@@ -1,11 +1,9 @@
-import AuthNavbar from "../../components/auth/AuthNavbar";
 import SignupShowcase from "../../components/auth/SignupShowcase";
 import LoginForm from "../../components/auth/LoginForm";
 
 const LoginPage = () => {
   return (
     <>
-      <AuthNavbar />
 
       <section
         className="

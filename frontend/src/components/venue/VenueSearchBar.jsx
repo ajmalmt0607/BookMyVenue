@@ -17,7 +17,9 @@ const VenueSearchBar = () => {
 
     params.set("page", 1);
 
-    setSearchParams(params);
+    setSearchParams(params, {
+        replace: true,
+    });
   };
 
   return (

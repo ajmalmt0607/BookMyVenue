@@ -1,3 +1,4 @@
+import { ChevronDown } from "lucide-react";
 import { useSearchParams } from "react-router-dom";
 
 const VenueSortDropdown = () => {
@@ -12,45 +13,72 @@ const VenueSortDropdown = () => {
 
     params.set("ordering", value);
 
-    setSearchParams(params);
+    setSearchParams(params, {
+      replace: true,
+    });
   };
 
   return (
-    <select
-      value={
-        searchParams.get("ordering") ||
-        "-rating"
-      }
-      onChange={(e) =>
-        handleSortChange(e.target.value)
-      }
-      className="
-        h-12
-        px-4
-        rounded-xl
-        border
-        border-gray-200
-        outline-none
-        bg-white
-      "
-    >
-      <option value="-rating">
-        Top Rated
-      </option>
+    <div className="relative min-w-[200px]">
 
-      <option value="rating">
-        Lowest Rated
-      </option>
+      <select
+        value={
+          searchParams.get("ordering") ||
+          "-rating"
+        }
+        onChange={(e) =>
+          handleSortChange(e.target.value)
+        }
+        className="
+          w-full
+          h-12
+          appearance-none
+          bg-white
+          border
+          border-gray-200
+          rounded-xl
+          px-4
+          pr-10
+          text-sm
+          font-medium
+          text-gray-700
+          outline-none
+          cursor-pointer
+          transition-all
+          focus:border-red-500
+        "
+      >
+        <option value="-rating">
+          Top Rated
+        </option>
 
-      <option value="-price_per_day">
-        Price High To Low
-      </option>
+        <option value="rating">
+          Lowest Rated
+        </option>
 
-      <option value="price_per_day">
-        Price Low To High
-      </option>
+        <option value="-price_per_day">
+          Price High To Low
+        </option>
 
-    </select>
+        <option value="price_per_day">
+          Price Low To High
+        </option>
+
+      </select>
+
+      <ChevronDown
+        size={18}
+        className="
+          absolute
+          right-4
+          top-1/2
+          -translate-y-1/2
+          text-gray-500
+          pointer-events-none
+        "
+      />
+
+    </div>
   );
 };
 
