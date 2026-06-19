@@ -157,11 +157,7 @@ class Booking(BaseModel):
 
 
 class BookingSlot(BaseModel):
-    booking = models.ForeignKey(
-        Booking,
-        on_delete=models.CASCADE,
-        related_name="slots"
-    )
+    booking = models.ForeignKey(Booking, on_delete=models.CASCADE, related_name="slots")
     slot = models.ForeignKey(
         VenueTimeSlot,
         on_delete=models.PROTECT,
