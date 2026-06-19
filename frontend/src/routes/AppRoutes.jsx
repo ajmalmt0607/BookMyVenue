@@ -3,47 +3,66 @@ import {
   Route,
 } from "react-router-dom";
 
+import PublicLayout from "../layouts/PublicLayout";
+import AuthLayout from "../layouts/AuthLayout";
+
 import HomePage from "../pages/Home/HomePage";
+import VenueListPage from "../pages/VenueListPage";
+import VenueDetailPage from "../pages/VenueDetailPage";
 
 import SignupPage from "../pages/auth/SignupPage";
 import LoginPage from "../pages/auth/LoginPage";
 
 import PublicRoute from "./PublicRoute";
-import VenueListPage from "../pages/VenueListPage";
 
 const AppRoutes = () => {
   return (
     <Routes>
 
-      {/* Public */}
+      {/* Public Pages */}
 
-      <Route
-        path="/"
-        element={<HomePage />}
-      />
+      <Route element={<PublicLayout />}>
 
-      <Route
-        path="/venues"
-        element={<VenueListPage />}
-      />
+        <Route
+          path="/"
+          element={<HomePage />}
+        />
 
-      <Route
-        path="/signup"
-        element={
-          <PublicRoute>
-            <SignupPage />
-          </PublicRoute>
-        }
-      />
+        <Route
+          path="/venues"
+          element={<VenueListPage />}
+        />
 
-      <Route
-        path="/login"
-        element={
-          <PublicRoute>
-            <LoginPage />
-          </PublicRoute>
-        }
-      />
+        <Route
+          path="/venues/:slug"
+          element={<VenueDetailPage />}
+        />
+
+      </Route>
+
+      {/* Auth Pages */}
+
+      <Route element={<AuthLayout />}>
+
+        <Route
+          path="/signup"
+          element={
+            <PublicRoute>
+              <SignupPage />
+            </PublicRoute>
+          }
+        />
+
+        <Route
+          path="/login"
+          element={
+            <PublicRoute>
+              <LoginPage />
+            </PublicRoute>
+          }
+        />
+
+      </Route>
 
     </Routes>
   );
