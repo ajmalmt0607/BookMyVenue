@@ -158,11 +158,7 @@ class Booking(BaseModel):
 
 class BookingSlot(BaseModel):
     booking = models.ForeignKey(Booking, on_delete=models.CASCADE, related_name="slots")
-    slot = models.ForeignKey(
-        VenueTimeSlot,
-        on_delete=models.PROTECT,
-        related_name="booking_slots"
-    )
+    slot = models.ForeignKey(VenueTimeSlot, on_delete=models.PROTECT, related_name="booking_slots")
     price = models.DecimalField(
         max_digits=12,
         decimal_places=2
