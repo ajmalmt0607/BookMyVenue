@@ -5,6 +5,7 @@ import { getAccessToken } from "../utils/tokenStorage";
 const ProtectedRoute = ({
   children,
 }) => {
+
   const token =
     getAccessToken();
 
@@ -12,7 +13,7 @@ const ProtectedRoute = ({
     children
   ) : (
     <Navigate
-      to="/signup"
+      to="/login"
       replace
     />
   );

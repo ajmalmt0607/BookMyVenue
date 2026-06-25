@@ -4,6 +4,11 @@ import {
   useEffect,
 } from "react";
 
+import {
+  useNavigate,
+} from "react-router-dom";
+import { reserveBooking } from "../../services/venueService";
+
 const VenueBookingCard = ({
   venue,
   slots = [],
@@ -11,8 +16,13 @@ const VenueBookingCard = ({
   setSelectedDate,
 }) => {
 
+  const navigate =
+    useNavigate();
+
   const [selectedSlots, setSelectedSlots] =
     useState([]);
+
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
 
@@ -62,6 +72,39 @@ const VenueBookingCard = ({
   const canProceed =
     selectedDate &&
     selectedSlots.length > 0;
+
+  const handleContinueBooking = async () => {
+
+    try {
+
+        setIsLoading(true);
+
+        const payload = {
+          venue_id: venue.id,
+          booking_date: selectedDate,
+          slot_ids: selectedSlots.map(
+            (slot) => slot.id
+          ),
+        };
+
+        const response =
+          await reserveBooking(payload);
+
+        navigate(
+          `/booking-summary/${response.booking_id}`
+        );
+
+      } catch (error) {
+
+        console.error(error);
+
+      } finally {
+
+        setIsLoading(false);
+
+      }
+
+  };
 
   return (
     <div
@@ -347,7 +390,13 @@ const VenueBookingCard = ({
       {/* Continue Button */}
 
       <button
-        disabled={!canProceed}
+        disabled={
+          !canProceed ||
+          isLoading
+        }
+        onClick={
+          handleContinueBooking
+        }
         className={`
           w-full
           mt-6
@@ -355,9 +404,14 @@ const VenueBookingCard = ({
           rounded-xl
           font-semibold
           transition-all
+          flex
+          items-center
+          justify-center
+          gap-2
 
           ${
-            canProceed
+            canProceed &&
+            !isLoading
               ? `
                 bg-red-600
                 text-white
@@ -371,7 +425,44 @@ const VenueBookingCard = ({
           }
         `}
       >
-        Continue Booking
+        {isLoading ? (
+          <>
+            <svg
+              className="
+                animate-spin
+                h-5
+                w-5
+                text-white
+              "
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+            >
+              <circle
+                className="opacity-25"
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                strokeWidth="4"
+              />
+
+              <path
+                className="opacity-75"
+                fill="currentColor"
+                d="
+                  M4 12a8 8 0 018-8v4
+                  a4 4 0 00-4 4H4z
+                "
+              />
+
+            </svg>
+
+            Reserving...
+          </>
+        ) : (
+          "Continue Booking"
+        )}
       </button>
 
     </div>

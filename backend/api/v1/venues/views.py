@@ -1,4 +1,5 @@
 from datetime import datetime
+from apps.venues.services.booking.booking_service import BookingService
 from rest_framework import status
 from api.v1.venues.filters import VenueFilter
 from rest_framework.filters import (
@@ -11,9 +12,10 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import generics
-from .serializers import AvailableSlotSerializer, VenueDetailSerializer, VenueListSerializer
+from .serializers import AvailableSlotSerializer, BookingDetailSerializer, ReserveBookingSerializer, VenueDetailSerializer, VenueListSerializer
 from rest_framework.generics import ListAPIView, RetrieveAPIView
 from rest_framework.permissions import AllowAny
+from rest_framework.permissions import IsAuthenticated
 
 from datetime import date
 from django.db.models import Exists, OuterRef
@@ -231,4 +233,88 @@ class VenueAvailabilityAPIView(APIView):
                 "data": serializer.data,
             },
             status=status.HTTP_200_OK,
+        )
+    
+
+class ReserveBookingAPIView(APIView):
+
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+
+        serializer = ReserveBookingSerializer(
+            data=request.data
+        )
+
+        serializer.is_valid(
+            raise_exception=True
+        )
+
+        venue = get_object_or_404(
+            Venue,
+            id=serializer.validated_data["venue_id"],
+            status=Venue.Status.APPROVED,
+            is_active=True,
+        )
+
+        booking = (
+            BookingService.create_reservation(
+                customer=request.user,
+                venue=venue,
+                booking_date=serializer.validated_data["booking_date"],
+                slot_ids=serializer.validated_data["slot_ids"],
+            )
+        )
+
+        return Response(
+            {
+                "booking_id": booking.id,
+                "reserved_until": booking.reserved_until,
+            }
+        )
+    
+
+class BookingDetailAPIView(APIView):
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, pk):
+
+        booking = get_object_or_404(
+            Booking,
+            id=pk,
+            customer=request.user,
+        )
+
+        serializer = BookingDetailSerializer(
+            booking
+        )
+
+        return Response(
+            serializer.data
+        )
+    
+
+class ValidateReservationAPIView(APIView):
+
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, pk):
+
+        booking = get_object_or_404(
+            Booking,
+            id=pk,
+            customer=request.user,
+        )
+
+        valid = (
+            BookingService.validate_reservation(
+                booking
+            )
+        )
+
+        return Response(
+            {
+                "valid": valid
+            }
         )

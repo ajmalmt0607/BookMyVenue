@@ -130,23 +130,32 @@ class VenueTimeSlot(BaseModel):
 
 class Booking(BaseModel):
     class Status(models.TextChoices):
-        PENDING = "PENDING", "Pending"
+        RESERVED = "RESERVED", "Reserved"
         CONFIRMED = "CONFIRMED", "Confirmed"
         CANCELLED = "CANCELLED", "Cancelled"
+        EXPIRED = "EXPIRED", "Expired"
 
     venue = models.ForeignKey(Venue, on_delete=models.CASCADE, related_name="bookings")
     customer = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="bookings")
     booking_date = models.DateField()
-    guests = models.PositiveIntegerField()
     total_amount = models.DecimalField(max_digits=12, decimal_places=2)
-    status = models.CharField(max_length=20, choices=Status.choices, default=Status.PENDING)
+    status = models.CharField(max_length=20, choices=Status.choices, default=Status.RESERVED)
     notes = models.TextField(blank=True, null=True)
+    reserved_until = models.DateTimeField(blank=True, null=True)
+    platform_fee = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    gst_amount = models.DecimalField(max_digits=12, decimal_places=2, default=0)
 
     class Meta:
         db_table = "venues_bookings"
         ordering = ["-created_at"]
         verbose_name = "Venue Booking"
         verbose_name_plural = "Venue Bookings"
+
+        indexes = [
+            models.Index(fields=["booking_date"]),
+            models.Index(fields=["status"]),
+            models.Index(fields=["reserved_until"]),
+        ]
 
     def __str__(self):
         return (
@@ -159,17 +168,33 @@ class Booking(BaseModel):
 class BookingSlot(BaseModel):
     booking = models.ForeignKey(Booking, on_delete=models.CASCADE, related_name="slots")
     slot = models.ForeignKey(VenueTimeSlot, on_delete=models.PROTECT, related_name="booking_slots")
-    price = models.DecimalField(
-        max_digits=12,
-        decimal_places=2
-    )
+    price = models.DecimalField(max_digits=12, decimal_places=2)
     class Meta:
         db_table = "venues_booking_slots"
         verbose_name = "Booking Slot"
         verbose_name_plural = "Booking Slots"
 
+        indexes = [
+            models.Index(fields=["slot"]),
+        ]
+
     def __str__(self):
-        return (
-            f"{self.booking.venue.name} - "
-            f"{self.slot.name}"
-        )
+        return (f"{self.booking.venue.name} - "f"{self.slot.name}")
+
+
+class Payment(BaseModel):
+    class Status(models.TextChoices):
+        PENDING = "PENDING", "Pending"
+        SUCCESS = "SUCCESS", "Success"
+        FAILED = "FAILED", "Failed"
+
+    booking = models.OneToOneField(Booking, on_delete=models.CASCADE, related_name="payment")
+    amount = models.DecimalField(max_digits=12, decimal_places=2)
+    payment_provider = models.CharField(max_length=50, default="RAZORPAY")
+    transaction_id = models.CharField(max_length=255, blank=True, null=True)
+    status = models.CharField(max_length=20, choices=Status.choices, default=Status.PENDING)
+
+    class Meta:
+        db_table = "venues_payments"
+        verbose_name = "Venue Payment"
+        verbose_name_plural = "Venue Payments"

@@ -23,6 +23,10 @@ import {
   getAccessToken,
   clearTokens,
 } from "../../utils/tokenStorage";
+import { useDispatch } from "react-redux";
+import {
+  logout,
+} from "../../features/auth/authSlice";
 
 const UserMenu = () => {
   const navigate =
@@ -30,6 +34,7 @@ const UserMenu = () => {
 
   const [isOpen, setIsOpen] =
     useState(false);
+  const dispatch = useDispatch();
 
   const menuRef =
     useRef(null);
@@ -42,14 +47,19 @@ const UserMenu = () => {
   const isAuthenticated =
     !!getAccessToken();
 
-  const handleLogout =
-    () => {
-      clearTokens();
+  const handleLogout = () => {
 
-      setIsOpen(false);
+    clearTokens();
 
-      navigate("/");
-    };
+    dispatch(logout());
+
+    setIsOpen(false);
+
+    navigate("/", {
+      replace: true,
+    });
+
+  };
 
   return (
     <div

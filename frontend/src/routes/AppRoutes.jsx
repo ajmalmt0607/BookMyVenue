@@ -14,12 +14,14 @@ import SignupPage from "../pages/auth/SignupPage";
 import LoginPage from "../pages/auth/LoginPage";
 
 import PublicRoute from "./PublicRoute";
+import BookingSummaryPage from "../pages/Booking/BookingSummaryPage";
+import ProtectedRoute from "./ProtectedRoute";
 
 const AppRoutes = () => {
   return (
     <Routes>
 
-      {/* Public Pages */}
+      {/* Public Layout */}
 
       <Route element={<PublicLayout />}>
 
@@ -38,9 +40,18 @@ const AppRoutes = () => {
           element={<VenueDetailPage />}
         />
 
+        <Route
+            path="/booking-summary/:bookingId"
+            element={
+                <ProtectedRoute>
+                    <BookingSummaryPage />
+                </ProtectedRoute>
+            }
+        />
+
       </Route>
 
-      {/* Auth Pages */}
+      {/* Auth Layout */}
 
       <Route element={<AuthLayout />}>
 

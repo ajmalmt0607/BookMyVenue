@@ -1,4 +1,4 @@
-from apps.venues.models import Amenity, Venue, VenueImage, VenueTimeSlot
+from apps.venues.models import Amenity, Booking, BookingSlot, Venue, VenueImage, VenueTimeSlot
 from rest_framework import serializers
 
 
@@ -168,4 +168,81 @@ class AvailableSlotSerializer(serializers.ModelSerializer):
             "start_time",
             "end_time",
             "price",
+        ]
+
+
+class ReserveBookingSerializer(serializers.Serializer):
+
+    venue_id = serializers.UUIDField()
+
+    booking_date = serializers.DateField()
+
+    slot_ids = serializers.ListField(
+        child=serializers.UUIDField(),
+        allow_empty=False,
+    )
+
+
+class BookingSlotSerializer(serializers.ModelSerializer):
+
+    slot_name = serializers.CharField(
+        source="slot.name"
+    )
+
+    start_time = serializers.TimeField(
+        source="slot.start_time"
+    )
+
+    end_time = serializers.TimeField(
+        source="slot.end_time"
+    )
+
+    class Meta:
+        model = BookingSlot
+
+        fields = [
+            "id",
+            "slot_name",
+            "start_time",
+            "end_time",
+            "price",
+        ]
+
+
+class BookingDetailSerializer(
+    serializers.ModelSerializer
+):
+
+    venue_name = serializers.CharField(
+        source="venue.name"
+    )
+    venue_max_capacity = serializers.CharField(
+        source="venue.max_capacity"
+    )
+    venue_type = serializers.CharField(
+        source="venue.venue_type"
+    )
+    rating = serializers.CharField(
+        source="venue.rating"
+    )
+    slots = BookingSlotSerializer(
+        many=True,
+        read_only=True,
+    )
+
+    class Meta:
+
+        model = Booking
+
+        fields = [
+            "id",
+            "venue_name",
+            "booking_date",
+            "venue_max_capacity",
+            "venue_type",
+            "rating",
+            "total_amount",
+            "reserved_until",
+            "status",
+            "slots",
         ]

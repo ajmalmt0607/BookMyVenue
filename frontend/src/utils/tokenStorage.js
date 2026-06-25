@@ -1,6 +1,4 @@
-export const setTokens = (
-  tokens
-) => {
+export const setTokens = (tokens) => {
   localStorage.setItem(
     "access_token",
     tokens.access
@@ -12,25 +10,31 @@ export const setTokens = (
   );
 };
 
-export const getAccessToken =
-  () =>
-    localStorage.getItem(
-      "access_token"
-    );
+export const getAccessToken = () =>
+  localStorage.getItem(
+    "access_token"
+  );
 
-export const getRefreshToken =
-  () =>
-    localStorage.getItem(
-      "refresh_token"
-    );
+export const getRefreshToken = () =>
+  localStorage.getItem(
+    "refresh_token"
+  );
 
-export const clearTokens =
-  () => {
-    localStorage.removeItem(
-      "access_token"
-    );
+export const updateAccessToken = (
+  access
+) => {
+  localStorage.setItem(
+    "access_token",
+    access
+  );
+};
 
-    localStorage.removeItem(
-      "refresh_token"
-    );
-  };
+export const clearTokens = () => {
+  localStorage.removeItem(
+    "access_token"
+  );
+
+  localStorage.removeItem(
+    "refresh_token"
+  );
+};

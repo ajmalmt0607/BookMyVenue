@@ -35,3 +35,24 @@ export const getVenueAvailability =
 
     return response.data;
 };
+
+export const reserveBooking = async (data) => {
+
+  const response = await api.post(
+    "/venues/bookings/reserve/",
+    data
+  );
+
+  return response.data;
+};
+
+export const getBookingSummary = async (
+  bookingId
+) => {
+
+  const response = await api.get(
+    `/venues/bookings/${bookingId}/`
+  );
+
+  return response.data;
+};
