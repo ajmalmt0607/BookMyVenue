@@ -229,6 +229,7 @@ class BookingDetailSerializer(
         many=True,
         read_only=True,
     )
+    
 
     class Meta:
 
@@ -237,10 +238,13 @@ class BookingDetailSerializer(
         fields = [
             "id",
             "venue_name",
+            "venue_type",
             "booking_date",
             "venue_max_capacity",
-            "venue_type",
             "rating",
+            "venue_amount",
+            "platform_fee",
+            "gst_amount",
             "total_amount",
             "reserved_until",
             "status",

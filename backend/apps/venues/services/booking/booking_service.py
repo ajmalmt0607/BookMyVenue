@@ -7,6 +7,7 @@ from apps.venues.models import Booking
 from apps.venues.models import BookingSlot
 from apps.venues.models import Venue
 from apps.venues.models import VenueTimeSlot
+from apps.venues.services.booking.pricing_service import PricingService
 
 
 class BookingService:
@@ -35,17 +36,30 @@ class BookingService:
                 "No valid slots selected."
             )
 
-        total_amount = sum(
+        venue_amount = sum(
             slot.price
             for slot in slots
+        )
+
+        price = PricingService.calculate(
+            venue_amount
         )
 
         booking = Booking.objects.create(
             customer=customer,
             venue=venue,
             booking_date=booking_date,
-            total_amount=total_amount,
+
+            venue_amount=price["venue_amount"],
+
+            platform_fee=price["platform_fee"],
+
+            gst_amount=price["gst_amount"],
+
+            total_amount=price["total_amount"],
+
             reserved_until=timezone.now() + timedelta(minutes=10),
+
             status=Booking.Status.RESERVED,
         )
 

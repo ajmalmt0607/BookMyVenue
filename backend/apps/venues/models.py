@@ -138,6 +138,7 @@ class Booking(BaseModel):
     venue = models.ForeignKey(Venue, on_delete=models.CASCADE, related_name="bookings")
     customer = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="bookings")
     booking_date = models.DateField()
+    venue_amount = models.DecimalField(max_digits=12, decimal_places=2)
     total_amount = models.DecimalField(max_digits=12, decimal_places=2)
     status = models.CharField(max_length=20, choices=Status.choices, default=Status.RESERVED)
     notes = models.TextField(blank=True, null=True)
