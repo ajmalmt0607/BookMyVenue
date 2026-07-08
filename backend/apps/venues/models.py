@@ -193,10 +193,14 @@ class Payment(BaseModel):
         SUCCESS = "SUCCESS", "Success"
         FAILED = "FAILED", "Failed"
 
+    class Provider(models.TextChoices):
+        STRIPE = "STRIPE", "Stripe"
+
     booking = models.OneToOneField(Booking, on_delete=models.CASCADE, related_name="payment")
     amount = models.DecimalField(max_digits=12, decimal_places=2)
-    payment_provider = models.CharField(max_length=50, default="RAZORPAY")
-    transaction_id = models.CharField(max_length=255, blank=True, null=True)
+    payment_provider = models.CharField(max_length=50, choices=Provider.choices, default=Provider.STRIPE)
+    stripe_payment_intent_id = models.CharField(max_length=255, blank=True, null=True, db_index=True)
+    stripe_charge_id = models.CharField(max_length=255, blank=True, null=True)
     status = models.CharField(max_length=20, choices=Status.choices, default=Status.PENDING)
 
     class Meta:

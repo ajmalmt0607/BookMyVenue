@@ -145,3 +145,4 @@ docker-data/
 # Project-specific ignored files
 # =========================
 # README.md
+CLAUDE.md

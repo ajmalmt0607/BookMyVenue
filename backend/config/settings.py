@@ -7,6 +7,7 @@ from pathlib import Path
 
 import environ
 import resend
+import stripe
 
 
 # Build paths inside the project
@@ -242,6 +243,14 @@ LOCATION_PROVIDER = env(
     "LOCATION_PROVIDER",
     default="OSM",
 )
+
+# Stripe settings
+STRIPE_SECRET_KEY = env("STRIPE_SECRET_KEY", default="")
+STRIPE_PUBLISHABLE_KEY = env("STRIPE_PUBLISHABLE_KEY", default="")
+STRIPE_WEBHOOK_SECRET = env("STRIPE_WEBHOOK_SECRET", default="")
+STRIPE_CURRENCY = env("STRIPE_CURRENCY", default="inr")
+
+stripe.api_key = STRIPE_SECRET_KEY
 
 
 # Default primary key field type

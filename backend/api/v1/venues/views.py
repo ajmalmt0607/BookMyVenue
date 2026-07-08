@@ -1,5 +1,7 @@
 from datetime import datetime
+import stripe
 from apps.venues.services.booking.booking_service import BookingService
+from apps.venues.services.booking.payment_service import PaymentService
 from rest_framework import status
 from api.v1.venues.filters import VenueFilter
 from rest_framework.filters import (
@@ -18,9 +20,12 @@ from rest_framework.permissions import AllowAny
 from rest_framework.permissions import IsAuthenticated
 
 from datetime import date
+from django.conf import settings
 from django.db.models import Exists, OuterRef
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
+from django.utils.decorators import method_decorator
+from django.views.decorators.csrf import csrf_exempt
 
 from apps.venues.services.locations.factory import (
     get_location_service,
@@ -368,4 +373,97 @@ class BookingCustomerDetailAPIView(APIView):
             {
                 "message": "Booking details updated successfully."
             }
+        )
+
+
+class InitiatePaymentAPIView(APIView):
+
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, pk):
+
+        booking = get_object_or_404(
+            Booking,
+            id=pk,
+            customer=request.user,
+        )
+
+        if not BookingService.validate_reservation(
+            booking
+        ):
+            return Response(
+                {
+                    "message": "Reservation has expired."
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        try:
+            payment, intent = PaymentService.create_payment_intent(
+                booking
+            )
+
+        except ValueError as exc:
+            return Response(
+                {
+                    "message": str(exc)
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        return Response(
+            {
+                "client_secret": intent.client_secret,
+                "publishable_key": settings.STRIPE_PUBLISHABLE_KEY,
+                "amount": payment.amount,
+                "currency": settings.STRIPE_CURRENCY,
+            }
+        )
+
+
+@method_decorator(csrf_exempt, name="dispatch")
+class StripeWebhookAPIView(APIView):
+
+    authentication_classes = []
+
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+
+        payload = request.body
+
+        sig_header = request.META.get(
+            "HTTP_STRIPE_SIGNATURE"
+        )
+
+        try:
+            event = stripe.Webhook.construct_event(
+                payload,
+                sig_header,
+                settings.STRIPE_WEBHOOK_SECRET,
+            )
+
+        except (
+            ValueError,
+            stripe.error.SignatureVerificationError,
+        ):
+            return Response(
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        event_type = event["type"]
+        intent = event["data"]["object"]
+
+        if event_type == "payment_intent.succeeded":
+            PaymentService.handle_payment_intent_succeeded(
+                intent
+            )
+
+        elif event_type == "payment_intent.payment_failed":
+            PaymentService.handle_payment_intent_failed(
+                intent
+            )
+
+        return Response(
+            status=status.HTTP_200_OK
         )
