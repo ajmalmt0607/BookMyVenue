@@ -92,9 +92,12 @@ class BookingService:
         if booking.status != Booking.Status.RESERVED:
             return False
 
-        if BookingService.is_expired(
-            booking
-        ):
+        if BookingService.is_expired(booking):
+
+            BookingService.expire_booking(
+                booking
+            )
+
             return False
 
         return True
@@ -120,6 +123,37 @@ class BookingService:
         booking.save(
             update_fields=[
                 "status",
+            ]
+        )
+
+        return booking
+
+    @staticmethod
+    def update_customer_details(
+        booking,
+        validated_data,
+    ):
+
+        booking.full_name = validated_data["full_name"]
+
+        booking.phone_number = validated_data["phone_number"]
+
+        booking.alternate_phone_number = validated_data.get(
+            "alternate_phone_number",
+            "",
+        )
+
+        booking.special_requirements = validated_data.get(
+            "special_requirements",
+            "",
+        )
+
+        booking.save(
+            update_fields=[
+                "full_name",
+                "phone_number",
+                "alternate_phone_number",
+                "special_requirements",
             ]
         )
 

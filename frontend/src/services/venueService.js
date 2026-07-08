@@ -56,3 +56,18 @@ export const getBookingSummary = async (
 
   return response.data;
 };
+
+export const updateCustomerDetails = async (
+  bookingId,
+  data
+) => {
+
+  const response =
+    await api.patch(
+      `/venues/bookings/${bookingId}/customer-details/`,
+      data
+    );
+
+  return response.data;
+
+};

@@ -12,7 +12,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import generics
-from .serializers import AvailableSlotSerializer, BookingDetailSerializer, ReserveBookingSerializer, VenueDetailSerializer, VenueListSerializer
+from .serializers import AvailableSlotSerializer, BookingDetailSerializer, ReserveBookingSerializer, UpdateBookingCustomerSerializer, VenueDetailSerializer, VenueListSerializer
 from rest_framework.generics import ListAPIView, RetrieveAPIView
 from rest_framework.permissions import AllowAny
 from rest_framework.permissions import IsAuthenticated
@@ -281,18 +281,25 @@ class BookingDetailAPIView(APIView):
     def get(self, request, pk):
 
         booking = get_object_or_404(
-            Booking,
+            Booking.objects.select_related(
+                "venue",
+                "venue__venue_type",
+            ).prefetch_related(
+                "venue__images",
+                "slots__slot",
+            ),
             id=pk,
             customer=request.user,
         )
 
         serializer = BookingDetailSerializer(
-            booking
+            booking,
+            context={
+                "request": request,
+            },
         )
 
-        return Response(
-            serializer.data
-        )
+        return Response(serializer.data)
     
 
 class ValidateReservationAPIView(APIView):
@@ -316,5 +323,49 @@ class ValidateReservationAPIView(APIView):
         return Response(
             {
                 "valid": valid
+            }
+        )
+    
+
+class BookingCustomerDetailAPIView(APIView):
+
+    permission_classes = [IsAuthenticated]
+
+    def patch(self, request, pk):
+
+        booking = get_object_or_404(
+            Booking,
+            id=pk,
+            customer=request.user,
+            status=Booking.Status.RESERVED,
+        )
+
+        # Reservation validation
+        if not BookingService.validate_reservation(
+            booking
+        ):
+            return Response(
+                {
+                    "message": "Reservation has expired."
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        serializer = UpdateBookingCustomerSerializer(
+            data=request.data,
+        )
+
+        serializer.is_valid(
+            raise_exception=True,
+        )
+
+        BookingService.update_customer_details(
+            booking=booking,
+            validated_data=serializer.validated_data,
+        )
+
+        return Response(
+            {
+                "message": "Booking details updated successfully."
             }
         )

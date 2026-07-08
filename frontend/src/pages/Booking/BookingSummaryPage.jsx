@@ -14,93 +14,70 @@ import { useNavigate } from "react-router-dom";
 
 import BookingSteps
 from "../../components/booking/BookingSteps";
+import {
+  useEffect,
+  useState,
+} from "react";
+
+import {
+  useParams,
+} from "react-router-dom";
+
+import {
+  getBookingSummary,
+} from "../../services/venueService";
+import BookingVenueCard from "./BookingVenueCard";
+import BookingSidebar from "../../components/booking/BookingSidebar";
 
 const BookingSummaryPage = () => {
 
-  const navigate =
-    useNavigate();
+  const navigate = useNavigate();
+  const { bookingId } = useParams();
 
-  /*
-    Later replace this with:
+  const [booking, setBooking] =
+    useState(null);
 
-    const booking =
-      useSelector(
-        state => state.booking
-      );
+  const [loading, setLoading] =
+    useState(true);
 
-    or API data
-  */
+  useEffect(() => {
 
-  const booking = {
-    venueName:
-      "Skyline Event Center",
+    const fetchBooking = async () => {
 
-    city:
-      "Kozhikode, Kerala",
+      try {
 
-    venueType:
-      "Auditorium",
+        const response =
+          await getBookingSummary(
+            bookingId
+          );
 
-    image:
-      "https://images.unsplash.com/photo-1519167758481-83f550bb49b3",
+        setBooking(response);
 
-    guests: 500,
+      } catch (error) {
 
-    date:
-      "17 June 2026",
+        console.error(error);
 
-    slots: [
-      {
-        id: 1,
-        name: "Morning",
-        time:
-          "09:00 AM - 12:00 PM",
-        price: 10000,
-      },
+      } finally {
 
-      {
-        id: 2,
-        name: "Afternoon",
-        time:
-          "12:00 PM - 03:00 PM",
-        price: 10000,
-      },
+        setLoading(false);
 
-      {
-        id: 3,
-        name: "Night",
-        time:
-          "08:00 PM - 11:00 PM",
-        price: 14000,
-      },
-    ],
-  };
+      }
 
-  const venueCharge =
-    booking.slots.reduce(
-      (
-        total,
-        slot
-      ) =>
-        total + slot.price,
-      0
+    };
+
+    fetchBooking();
+
+  }, [bookingId]);
+
+  if (loading) {
+
+  return (
+      <div className="p-20">
+        Loading...
+      </div>
     );
 
-  const platformFee =
-    500;
-
-  const gst =
-    Math.round(
-      (
-        venueCharge +
-        platformFee
-      ) * 0.18
-    );
-
-  const totalAmount =
-    venueCharge +
-    platformFee +
-    gst;
+  }
 
   return (
     <section
@@ -150,323 +127,9 @@ const BookingSummaryPage = () => {
             proceeding.
           </p>
 
-          <div
-            className="
-              bg-white
-              border
-              border-gray-100
-              rounded-2xl
-              p-5
-              shadow-sm
-            "
-          >
-
-            {/* Venue Header */}
-
-            <div
-              className="
-                flex
-                flex-col
-                md:flex-row
-                gap-5
-              "
-            >
-
-              <img
-                src={
-                  booking.image
-                }
-                alt=""
-                className="
-                  w-full
-                  md:w-64
-                  h-40
-                  object-cover
-                  rounded-2xl
-                "
-              />
-
-              <div
-                className="
-                  flex-1
-                "
-              >
-
-                <h2
-                  className="
-                    text-2xl
-                    font-bold
-                    text-gray-900
-                  "
-                >
-                  {
-                    booking.venueName
-                  }
-                </h2>
-
-                <div
-                  className="
-                    flex
-                    items-center
-                    gap-2
-                    mt-2
-                    text-red-600
-                  "
-                >
-
-                  <MapPin
-                    size={16}
-                  />
-
-                  <span>
-                    {
-                      booking.city
-                    }
-                  </span>
-
-                </div>
-
-                <div
-                  className="
-                    mt-4
-                    inline-flex
-                    items-center
-                    gap-2
-                    bg-gray-50
-                    px-3
-                    py-2
-                    rounded-xl
-                  "
-                >
-
-                  <Building2
-                    size={16}
-                  />
-
-                  <span
-                    className="
-                      text-sm
-                      font-medium
-                    "
-                  >
-                    {
-                      booking.venueType
-                    }
-                  </span>
-
-                </div>
-
-              </div>
-
-            </div>
-
-            {/* Details Section */}
-
-            <div
-              className="
-                mt-6
-                pt-6
-                border-t
-                grid
-                lg:grid-cols-[280px_1fr]
-                gap-5
-              "
-            >
-
-              {/* Left Info */}
-
-              <div
-                className="
-                  space-y-4
-                "
-              >
-
-                <div
-                  className="
-                    bg-gray-50
-                    rounded-xl
-                    p-3
-                    flex
-                    gap-3
-                    items-center
-                  "
-                >
-
-                  <Calendar
-                    size={18}
-                    className="
-                      text-red-600
-                    "
-                  />
-
-                  <div>
-
-                    <p
-                      className="
-                        text-xs
-                        text-gray-500
-                      "
-                    >
-                      Event Date
-                    </p>
-
-                    <h4
-                      className="
-                        font-semibold
-                      "
-                    >
-                      {
-                        booking.date
-                      }
-                    </h4>
-
-                  </div>
-
-                </div>
-
-                <div
-                  className="
-                    bg-gray-50
-                    rounded-xl
-                    p-3
-                    flex
-                    gap-3
-                    items-center
-                  "
-                >
-
-                  <Users
-                    size={18}
-                    className="
-                      text-red-600
-                    "
-                  />
-
-                  <div>
-
-                    <p
-                      className="
-                        text-xs
-                        text-gray-500
-                      "
-                    >
-                      Guests
-                    </p>
-
-                    <h4
-                      className="
-                        font-semibold
-                      "
-                    >
-                      {
-                        booking.guests
-                      }
-                    </h4>
-
-                  </div>
-
-                </div>
-
-              </div>
-
-              {/* Slots */}
-
-              <div>
-
-                <h3
-                  className="
-                    font-bold
-                    text-lg
-                    mb-3
-                  "
-                >
-                  Selected Time Slots
-                </h3>
-
-                <div
-                  className="
-                    max-h-[220px]
-                    overflow-y-auto
-                    space-y-3
-                  "
-                >
-
-                  {booking.slots.map(
-                    (slot) => (
-
-                      <div
-                        key={
-                          slot.id
-                        }
-                        className="
-                          border
-                          border-gray-200
-                          rounded-xl
-                          p-3
-                          flex
-                          justify-between
-                          items-center
-                        "
-                      >
-
-                        <div>
-
-                          <h4
-                            className="
-                              font-semibold
-                              text-sm
-                            "
-                          >
-                            {
-                              slot.name
-                            }
-                          </h4>
-
-                          <p
-                            className="
-                              text-xs
-                              text-gray-500
-                              mt-1
-                              flex
-                              items-center
-                              gap-1
-                            "
-                          >
-
-                            <Clock
-                              size={13}
-                            />
-
-                            {
-                              slot.time
-                            }
-
-                          </p>
-
-                        </div>
-
-                        <div
-                          className="
-                            font-bold
-                            text-red-600
-                          "
-                        >
-                          ₹
-                          {slot.price.toLocaleString()}
-                        </div>
-
-                      </div>
-
-                    )
-                  )}
-
-                </div>
-
-              </div>
-
-            </div>
-
-          </div>
+          <BookingVenueCard
+            booking={booking}
+          />
 
           {/* Buttons */}
 
@@ -516,6 +179,11 @@ const BookingSummaryPage = () => {
                 items-center
                 gap-2
               "
+              onClick={() =>
+                navigate(
+                    `/booking/${booking.id}/details`
+                )
+              }
             >
 
               Continue
@@ -532,173 +200,9 @@ const BookingSummaryPage = () => {
 
         {/* RIGHT SIDEBAR */}
 
-        <div
-          className="
-            sticky
-            top-24
-            h-fit
-            bg-white
-            border
-            border-gray-100
-            rounded-2xl
-            p-5
-            shadow-sm
-          "
-        >
-
-          <h3
-            className="
-              text-xl
-              font-bold
-              mb-5
-            "
-          >
-            Price Details
-          </h3>
-
-          <div
-            className="
-              space-y-4
-            "
-          >
-
-            <div
-              className="
-                flex
-                justify-between
-              "
-            >
-              <span>
-                Venue Charges
-              </span>
-
-              <span>
-                ₹
-                {venueCharge.toLocaleString()}
-              </span>
-            </div>
-
-            <div
-              className="
-                flex
-                justify-between
-              "
-            >
-              <span>
-                Platform Fee
-              </span>
-
-              <span>
-                ₹500
-              </span>
-            </div>
-
-            <div
-              className="
-                flex
-                justify-between
-              "
-            >
-              <span>
-                GST (18%)
-              </span>
-
-              <span>
-                ₹
-                {gst.toLocaleString()}
-              </span>
-            </div>
-
-          </div>
-
-          <div
-            className="
-              border-t
-              mt-5
-              pt-5
-              flex
-              justify-between
-              items-center
-            "
-          >
-
-            <span
-              className="
-                font-bold
-                text-lg
-              "
-            >
-              Total
-            </span>
-
-            <span
-              className="
-                text-2xl
-                font-bold
-                text-red-600
-              "
-            >
-              ₹
-              {totalAmount.toLocaleString()}
-            </span>
-
-          </div>
-
-          <div
-            className="
-              mt-5
-              bg-green-50
-              border
-              border-green-200
-              rounded-xl
-              p-3
-              text-sm
-            "
-          >
-            Great choice! This venue
-            is available for your
-            selected date and slots.
-          </div>
-
-          <div
-            className="
-              mt-5
-              pt-5
-              border-t
-            "
-          >
-
-            <h4
-              className="
-                font-semibold
-              "
-            >
-              Need Help?
-            </h4>
-
-            <div
-              className="
-                mt-3
-                bg-gray-50
-                rounded-xl
-                p-3
-                flex
-                items-center
-                gap-3
-              "
-            >
-
-              <Phone
-                size={18}
-              />
-
-              +91 98765 43210
-
-            </div>
-
-          </div>
-
-        </div>
+        <BookingSidebar
+          booking={booking}
+        />
 
       </div>
 

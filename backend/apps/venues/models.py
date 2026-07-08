@@ -137,6 +137,10 @@ class Booking(BaseModel):
 
     venue = models.ForeignKey(Venue, on_delete=models.CASCADE, related_name="bookings")
     customer = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="bookings")
+    full_name = models.CharField(max_length=255, blank=True)
+    phone_number = models.CharField(max_length=20, blank=True)
+    alternate_phone_number = models.CharField(max_length=20, blank=True, null=True)
+    special_requirements = models.TextField(blank=True, null=True)
     booking_date = models.DateField()
     venue_amount = models.DecimalField(max_digits=12, decimal_places=2)
     total_amount = models.DecimalField(max_digits=12, decimal_places=2)

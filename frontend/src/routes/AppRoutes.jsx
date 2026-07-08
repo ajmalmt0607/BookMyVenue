@@ -16,6 +16,7 @@ import LoginPage from "../pages/auth/LoginPage";
 import PublicRoute from "./PublicRoute";
 import BookingSummaryPage from "../pages/Booking/BookingSummaryPage";
 import ProtectedRoute from "./ProtectedRoute";
+import CustomerDetailsPage from "../pages/Booking/CustomerDetailsPage";
 
 const AppRoutes = () => {
   return (
@@ -40,6 +41,14 @@ const AppRoutes = () => {
           element={<VenueDetailPage />}
         />
 
+        <Route
+            path="/booking/:bookingId/details"
+            element={
+                <ProtectedRoute>
+                    <CustomerDetailsPage />
+                </ProtectedRoute>
+            }
+        />
         <Route
             path="/booking-summary/:bookingId"
             element={

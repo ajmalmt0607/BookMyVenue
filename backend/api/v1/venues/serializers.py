@@ -225,9 +225,13 @@ class BookingDetailSerializer(
     rating = serializers.CharField(
         source="venue.rating"
     )
+    venue_primary_image = serializers.SerializerMethodField()
     slots = BookingSlotSerializer(
         many=True,
         read_only=True,
+    )
+    venue_city = serializers.CharField(
+        source="venue.city"
     )
     
 
@@ -237,8 +241,14 @@ class BookingDetailSerializer(
 
         fields = [
             "id",
+            "full_name",
+            "phone_number",
+            "alternate_phone_number",
+            "special_requirements",
             "venue_name",
+            "venue_primary_image",
             "venue_type",
+            "venue_city",
             "booking_date",
             "venue_max_capacity",
             "rating",
@@ -250,3 +260,45 @@ class BookingDetailSerializer(
             "status",
             "slots",
         ]
+
+    def get_venue_primary_image(self, obj):
+
+        image = obj.venue.images.filter(
+            is_primary=True
+        ).first()
+
+        if not image:
+            return None
+
+        request = self.context.get("request")
+
+        if request:
+            return request.build_absolute_uri(
+                image.image.url
+            )
+
+        return image.image.url
+    
+
+class UpdateBookingCustomerSerializer(
+    serializers.Serializer
+):
+
+    full_name = serializers.CharField(
+        max_length=255
+    )
+
+    phone_number = serializers.CharField(
+        max_length=20
+    )
+
+    alternate_phone_number = serializers.CharField(
+        max_length=20,
+        required=False,
+        allow_blank=True,
+    )
+
+    special_requirements = serializers.CharField(
+        required=False,
+        allow_blank=True,
+    )
