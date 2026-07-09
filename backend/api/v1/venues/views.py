@@ -1,4 +1,5 @@
 from datetime import datetime
+import logging
 import stripe
 from apps.venues.services.booking.booking_service import BookingService
 from apps.venues.services.booking.payment_service import PaymentService
@@ -30,6 +31,8 @@ from django.views.decorators.csrf import csrf_exempt
 from apps.venues.services.locations.factory import (
     get_location_service,
 )
+
+logger = logging.getLogger(__name__)
 
 
 class LocationSearchAPIView(
@@ -289,6 +292,7 @@ class BookingDetailAPIView(APIView):
             Booking.objects.select_related(
                 "venue",
                 "venue__venue_type",
+                "payment",
             ).prefetch_related(
                 "venue__images",
                 "slots__slot",
@@ -421,6 +425,45 @@ class InitiatePaymentAPIView(APIView):
         )
 
 
+class ConfirmPaymentAPIView(APIView):
+    """
+    Synchronous fallback to the Stripe webhook: called right after the
+    frontend's stripe.confirmPayment() resolves, so booking confirmation
+    doesn't depend solely on webhook delivery. Re-verifies the
+    PaymentIntent status directly with Stripe rather than trusting the
+    client.
+    """
+
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, pk):
+
+        booking = get_object_or_404(
+            Booking.objects.select_related(
+                "payment"
+            ),
+            id=pk,
+            customer=request.user,
+        )
+
+        payment = PaymentService.sync_payment_status(
+            booking
+        )
+
+        booking.refresh_from_db()
+
+        return Response(
+            {
+                "booking_status": booking.status,
+                "payment_status": (
+                    payment.status
+                    if payment
+                    else None
+                ),
+            }
+        )
+
+
 @method_decorator(csrf_exempt, name="dispatch")
 class StripeWebhookAPIView(APIView):
 
@@ -447,12 +490,22 @@ class StripeWebhookAPIView(APIView):
             ValueError,
             stripe.error.SignatureVerificationError,
         ):
+            logger.warning(
+                "Stripe webhook: signature verification failed"
+            )
             return Response(
                 status=status.HTTP_400_BAD_REQUEST
             )
 
         event_type = event["type"]
         intent = event["data"]["object"]
+
+        logger.info(
+            "Stripe webhook: received event %s (type=%s intent=%s)",
+            event["id"],
+            event_type,
+            intent["id"],
+        )
 
         if event_type == "payment_intent.succeeded":
             PaymentService.handle_payment_intent_succeeded(

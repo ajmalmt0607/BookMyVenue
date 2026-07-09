@@ -233,7 +233,8 @@ class BookingDetailSerializer(
     venue_city = serializers.CharField(
         source="venue.city"
     )
-    
+
+    payment_status = serializers.SerializerMethodField()
 
     class Meta:
 
@@ -258,8 +259,23 @@ class BookingDetailSerializer(
             "total_amount",
             "reserved_until",
             "status",
+            "payment_status",
             "slots",
         ]
+
+    def get_payment_status(self, obj):
+
+        payment = getattr(
+            obj,
+            "payment",
+            None,
+        )
+
+        return (
+            payment.status
+            if payment
+            else None
+        )
 
     def get_venue_primary_image(self, obj):
 

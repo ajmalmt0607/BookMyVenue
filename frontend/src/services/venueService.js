@@ -71,3 +71,29 @@ export const updateCustomerDetails = async (
   return response.data;
 
 };
+
+export const initiatePayment = async (
+  bookingId
+) => {
+
+  const response =
+    await api.post(
+      `/venues/bookings/${bookingId}/payment/initiate/`
+    );
+
+  return response.data;
+
+};
+
+export const confirmPaymentStatus = async (
+  bookingId
+) => {
+
+  const response =
+    await api.post(
+      `/venues/bookings/${bookingId}/payment/confirm/`
+    );
+
+  return response.data;
+
+};

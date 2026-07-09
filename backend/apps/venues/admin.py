@@ -3,6 +3,7 @@ from django.contrib import admin
 from .models import (
     Amenity,
     Booking,
+    Payment,
     Venue,
     VenueImage,
     VenueTimeSlot,
@@ -239,6 +240,23 @@ class BookingSlotInline(admin.TabularInline):
     )
 
 
+class PaymentInline(admin.StackedInline):
+    model = Payment
+    extra = 0
+    can_delete = False
+
+    readonly_fields = (
+        "id",
+        "amount",
+        "payment_provider",
+        "stripe_payment_intent_id",
+        "stripe_charge_id",
+        "status",
+        "created_at",
+        "updated_at",
+    )
+
+
 @admin.register(Booking)
 class BookingAdmin(admin.ModelAdmin):
 
@@ -277,6 +295,7 @@ class BookingAdmin(admin.ModelAdmin):
 
     inlines = [
         BookingSlotInline,
+        PaymentInline,
     ]
 
     ordering = (
@@ -301,4 +320,47 @@ class BookingSlotAdmin(admin.ModelAdmin):
     autocomplete_fields = (
         "booking",
         "slot",
+    )
+
+
+@admin.register(Payment)
+class PaymentAdmin(admin.ModelAdmin):
+
+    list_display = (
+        "id",
+        "booking",
+        "amount",
+        "payment_provider",
+        "status",
+        "stripe_payment_intent_id",
+        "created_at",
+    )
+
+    list_filter = (
+        "status",
+        "payment_provider",
+        "created_at",
+    )
+
+    search_fields = (
+        "booking__venue__name",
+        "booking__customer__email",
+        "stripe_payment_intent_id",
+        "stripe_charge_id",
+    )
+
+    autocomplete_fields = (
+        "booking",
+    )
+
+    readonly_fields = (
+        "id",
+        "stripe_payment_intent_id",
+        "stripe_charge_id",
+        "created_at",
+        "updated_at",
+    )
+
+    ordering = (
+        "-created_at",
     )

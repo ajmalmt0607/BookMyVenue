@@ -7,6 +7,8 @@ import {
 
 const CustomerDetailsSidebar = ({
   booking,
+  badge,
+  footerNote,
 }) => {
 
   if (!booking) return null;
@@ -38,15 +40,28 @@ const CustomerDetailsSidebar = ({
         "
       >
 
-        <h3
+        <div
           className="
-            text-xl
-            font-bold
+            flex
+            items-center
+            justify-between
+            gap-3
             mb-5
           "
         >
-          Booking Summary
-        </h3>
+
+          <h3
+            className="
+              text-xl
+              font-bold
+            "
+          >
+            Booking Summary
+          </h3>
+
+          {badge}
+
+        </div>
 
         {/* Venue */}
 
@@ -431,6 +446,8 @@ const CustomerDetailsSidebar = ({
         </span>
 
       </div>
+
+      {footerNote}
 
     </div>
   );

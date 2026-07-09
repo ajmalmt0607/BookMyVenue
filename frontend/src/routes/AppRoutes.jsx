@@ -17,6 +17,8 @@ import PublicRoute from "./PublicRoute";
 import BookingSummaryPage from "../pages/Booking/BookingSummaryPage";
 import ProtectedRoute from "./ProtectedRoute";
 import CustomerDetailsPage from "../pages/Booking/CustomerDetailsPage";
+import PaymentPage from "../pages/Booking/PaymentPage";
+import BookingConfirmationPage from "../pages/Booking/BookingConfirmationPage";
 
 const AppRoutes = () => {
   return (
@@ -54,6 +56,24 @@ const AppRoutes = () => {
             element={
                 <ProtectedRoute>
                     <BookingSummaryPage />
+                </ProtectedRoute>
+            }
+        />
+
+        <Route
+            path="/booking/:bookingId/payment"
+            element={
+                <ProtectedRoute>
+                    <PaymentPage />
+                </ProtectedRoute>
+            }
+        />
+
+        <Route
+            path="/booking/:bookingId/confirmation"
+            element={
+                <ProtectedRoute>
+                    <BookingConfirmationPage />
                 </ProtectedRoute>
             }
         />

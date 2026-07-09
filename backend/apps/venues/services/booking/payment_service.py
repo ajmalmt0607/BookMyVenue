@@ -1,3 +1,5 @@
+import logging
+
 import stripe
 from django.conf import settings
 from django.db import transaction
@@ -5,6 +7,8 @@ from django.db import transaction
 from apps.venues.models import Booking
 from apps.venues.models import Payment
 from apps.venues.services.booking.booking_service import BookingService
+
+logger = logging.getLogger(__name__)
 
 
 class PaymentService:
@@ -102,11 +106,16 @@ class PaymentService:
 
     @staticmethod
     @transaction.atomic
-    def handle_payment_intent_succeeded(
-        intent,
+    def confirm_payment_success(
+        payment_intent_id,
+        charge_id=None,
     ):
-
-        payment_intent_id = intent["id"]
+        """
+        Idempotently mark the payment SUCCESS and confirm its booking.
+        Safe to call more than once (duplicate webhooks, webhook + sync
+        confirm racing each other) - row locks make the second caller
+        see the already-confirmed state and no-op.
+        """
 
         try:
             payment = (
@@ -119,10 +128,28 @@ class PaymentService:
             )
 
         except Payment.DoesNotExist:
+            logger.warning(
+                "Stripe confirm: no Payment found for intent %s",
+                payment_intent_id,
+            )
             return None
 
-        # Idempotent: webhooks can be delivered more than once.
+        logger.info(
+            "Stripe confirm: payment found (payment_id=%s booking_id=%s "
+            "payment_status=%s booking_status=%s)",
+            payment.id,
+            payment.booking_id,
+            payment.status,
+            payment.booking.status,
+        )
+
         if payment.booking.status == Booking.Status.CONFIRMED:
+            logger.info(
+                "Stripe confirm: booking %s already confirmed, skipping "
+                "(idempotent no-op) for intent %s",
+                payment.booking_id,
+                payment_intent_id,
+            )
             return payment
 
         if payment.status != Payment.Status.SUCCESS:
@@ -130,30 +157,127 @@ class PaymentService:
             PaymentService.mark_success(
                 payment,
                 payment_intent_id,
-                charge_id=intent.get("latest_charge"),
+                charge_id=charge_id,
+            )
+
+            logger.info(
+                "Stripe confirm: payment %s updated to SUCCESS "
+                "(intent=%s charge=%s)",
+                payment.id,
+                payment_intent_id,
+                charge_id,
             )
 
         BookingService.confirm_booking(
             payment.booking
         )
 
+        logger.info(
+            "Stripe confirm: booking %s confirmed (reserved_until cleared)",
+            payment.booking_id,
+        )
+
         return payment
+
+    @staticmethod
+    @transaction.atomic
+    def confirm_payment_failure(
+        payment_intent_id,
+    ):
+
+        try:
+            payment = (
+                Payment.objects
+                .select_for_update()
+                .get(
+                    stripe_payment_intent_id=payment_intent_id
+                )
+            )
+
+        except Payment.DoesNotExist:
+            return None
+
+        # Never downgrade a payment that already succeeded - guards
+        # against an out-of-order/late "failed" event.
+        if payment.status != Payment.Status.SUCCESS:
+            PaymentService.mark_failed(payment)
+
+        return payment
+
+    @staticmethod
+    def handle_payment_intent_succeeded(
+        intent,
+    ):
+
+        logger.info(
+            "Stripe webhook: payment_intent.succeeded received for %s",
+            intent["id"],
+        )
+
+        return PaymentService.confirm_payment_success(
+            intent["id"],
+            # StripeObject has no dict-style .get() in this SDK version -
+            # getattr() with a default is the correct way to read an
+            # optional field without raising on a missing/None key.
+            charge_id=getattr(
+                intent,
+                "latest_charge",
+                None,
+            ),
+        )
 
     @staticmethod
     def handle_payment_intent_failed(
         intent,
     ):
 
-        try:
-            payment = Payment.objects.get(
-                stripe_payment_intent_id=intent["id"]
+        return PaymentService.confirm_payment_failure(
+            intent["id"]
+        )
+
+    @staticmethod
+    def sync_payment_status(
+        booking,
+    ):
+        """
+        Re-verify the booking's PaymentIntent directly with Stripe and
+        apply the result. Used right after a successful client-side
+        confirmPayment() so confirmation doesn't depend solely on webhook
+        delivery, which can be delayed, misconfigured, or (in local dev)
+        simply not running.
+        """
+
+        payment = getattr(
+            booking,
+            "payment",
+            None,
+        )
+
+        if not payment or not payment.stripe_payment_intent_id:
+            return payment
+
+        if payment.status == Payment.Status.SUCCESS:
+            return payment
+
+        intent = stripe.PaymentIntent.retrieve(
+            payment.stripe_payment_intent_id
+        )
+
+        if intent.status == "succeeded":
+
+            return PaymentService.confirm_payment_success(
+                intent.id,
+                charge_id=getattr(
+                    intent,
+                    "latest_charge",
+                    None,
+                ),
             )
 
-        except Payment.DoesNotExist:
-            return None
+        if intent.status == "canceled":
 
-        PaymentService.mark_failed(
-            payment
-        )
+            return PaymentService.confirm_payment_failure(
+                intent.id
+            )
 
         return payment

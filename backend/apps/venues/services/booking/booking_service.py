@@ -107,9 +107,12 @@ class BookingService:
 
         booking.status = Booking.Status.CONFIRMED
 
+        booking.reserved_until = None
+
         booking.save(
             update_fields=[
                 "status",
+                "reserved_until",
             ]
         )
 
