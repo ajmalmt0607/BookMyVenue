@@ -1,6 +1,6 @@
 import HeroContent from "./HeroContent";
 import HeroImage from "./HeroImage";
-import VenueSearchCard from "./VenueSearchCard";
+import SearchCard from "../search/SearchCard";
 
 const HeroSection = () => {
   return (
@@ -25,7 +25,7 @@ const HeroSection = () => {
         <HeroImage />
       </div>
 
-      <VenueSearchCard />
+      <SearchCard />
     </section>
   );
 };
