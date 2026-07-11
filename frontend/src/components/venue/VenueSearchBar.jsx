@@ -32,7 +32,7 @@ const VenueSearchBar = () => {
           left-4
           top-1/2
           -translate-y-1/2
-          text-gray-400
+          text-red-600
         "
       />
 
@@ -52,11 +52,18 @@ const VenueSearchBar = () => {
           h-12
           pl-11
           pr-4
-          rounded-xl
+          rounded-2xl
           border
           border-gray-200
           outline-none
+          transition-all
+          duration-200
+          ease-out
+          hover:border-red-300
+          hover:shadow-sm
           focus:border-red-500
+          focus:ring-4
+          focus:ring-red-100
         "
       />
 

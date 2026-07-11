@@ -1,4 +1,5 @@
 from apps.venues.models import Amenity, Booking, BookingSlot, Venue, VenueImage, VenueTimeSlot
+from apps.venues.services.media.thumbnails import get_thumbnail_url
 from rest_framework import serializers
 
 
@@ -16,6 +17,8 @@ class VenueListSerializer(serializers.ModelSerializer):
 
     image = serializers.SerializerMethodField()
 
+    images = serializers.SerializerMethodField()
+
     class Meta:
         model = Venue
 
@@ -31,18 +34,49 @@ class VenueListSerializer(serializers.ModelSerializer):
             "min_capacity",
             "max_capacity",
             "image",
+            "images",
         ]
+
+    def _ordered_images(self, obj):
+        # `obj.images.all()` reuses the view's prefetch_related cache as
+        # long as no further DB-level filtering/ordering is applied to it,
+        # so sort in Python instead of `.order_by(...)` to avoid an N+1.
+        return sorted(
+            obj.images.all(),
+            key=lambda image: (
+                not image.is_primary,
+                image.display_order,
+            ),
+        )
+
+    def _absolute_url(self, url):
+
+        request = self.context.get("request")
+
+        return (
+            request.build_absolute_uri(url)
+            if request
+            else url
+        )
 
     def get_image(self, obj):
 
-        image = obj.images.filter(
-            is_primary=True
-        ).first()
+        images = self._ordered_images(obj)
 
-        if image:
-            return image.image.url
+        if images and images[0].image:
+            return self._absolute_url(
+                get_thumbnail_url(images[0].image)
+            )
 
         return None
+
+    def get_images(self, obj):
+
+        return [
+            self._absolute_url(get_thumbnail_url(image.image))
+            for image in self._ordered_images(obj)
+            if image.image
+        ]
     
 
 class VenueImageSerializer(serializers.ModelSerializer):

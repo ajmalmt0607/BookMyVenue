@@ -33,7 +33,7 @@ const VenuePagination = ({
         justify-center
         items-center
         gap-2
-        mt-10
+        mt-12
       "
     >
 
@@ -42,10 +42,14 @@ const VenuePagination = ({
         onClick={() =>
           changePage(currentPage - 1)
         }
+        aria-label="Previous page"
         className="
-          p-2
-          rounded-lg
-          border
+          flex h-10 w-10 items-center justify-center
+          rounded-xl border border-gray-200 text-gray-600
+          transition-all duration-200 ease-out
+          hover:border-red-300 hover:text-red-600
+          disabled:opacity-40 disabled:cursor-not-allowed
+          disabled:hover:border-gray-200 disabled:hover:text-gray-600
         "
       >
         <ChevronLeft size={18} />
@@ -59,16 +63,12 @@ const VenuePagination = ({
               changePage(index + 1)
             }
             className={`
-              w-10
-              h-10
-              rounded-lg
-              border
-
+              h-10 w-10 rounded-xl border text-sm font-semibold
+              transition-all duration-200 ease-out
               ${
-                currentPage ===
-                index + 1
-                  ? "bg-red-600 text-white border-red-600"
-                  : ""
+                currentPage === index + 1
+                  ? "bg-red-600 text-white border-red-600 shadow-sm"
+                  : "border-gray-200 text-gray-600 hover:border-red-300 hover:text-red-600"
               }
             `}
           >
@@ -84,10 +84,14 @@ const VenuePagination = ({
         onClick={() =>
           changePage(currentPage + 1)
         }
+        aria-label="Next page"
         className="
-          p-2
-          rounded-lg
-          border
+          flex h-10 w-10 items-center justify-center
+          rounded-xl border border-gray-200 text-gray-600
+          transition-all duration-200 ease-out
+          hover:border-red-300 hover:text-red-600
+          disabled:opacity-40 disabled:cursor-not-allowed
+          disabled:hover:border-gray-200 disabled:hover:text-gray-600
         "
       >
         <ChevronRight size={18} />

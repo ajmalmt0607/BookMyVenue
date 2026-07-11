@@ -1,214 +1,99 @@
-import { useNavigate } from "react-router-dom";
+import { memo, useMemo } from "react";
 import { Link } from "react-router-dom";
+import { MapPin, Users, Star, ArrowUpRight } from "lucide-react";
 
-import {
-  MapPin,
-  Users,
-  Star,
-} from "lucide-react";
+import VenueImageCarousel from "./VenueImageCarousel";
+import WishlistButton from "./WishlistButton";
 
 const VenueCard = ({ venue }) => {
+  const images = useMemo(
+    () =>
+      venue.images?.length
+        ? venue.images
+        : venue.image
+          ? [venue.image]
+          : [],
+    [venue.images, venue.image]
+  );
 
   return (
     <Link
+      to={`/venues/${venue.slug}`}
       className="
-        bg-white
-        overflow-hidden
-        transition-all
-        duration-300
-        cursor-pointer
-        group
+        group flex flex-col overflow-hidden rounded-3xl
+        bg-white border border-gray-100
+        transition-[box-shadow,border-color] duration-200 ease-out
+        hover:border-gray-200 hover:shadow-lg
       "
     >
-      {/* Image */}
-
-      <div className="relative rounded-2xl overflow-hidden">
-
-        <img
-          src={`http://localhost:8011${venue.image}`}
-          alt={venue.name}
-          className="
-            h-50
-            w-full
-            object-cover
-            group-hover:scale-105
-            transition-all
-            duration-500
-          "
-        />
+      <div className="relative">
+        <VenueImageCarousel images={images} alt={venue.name} />
 
         <div
           className="
-            absolute
-            top-3
-            left-3
-            bg-red-500
-            text-white
-            text-xs
-            font-semibold
-            px-3
-            py-1
-            rounded
+            absolute top-3 left-3 z-10
+            flex items-center gap-1.5 rounded-full
+            bg-white/95 px-3 py-1.5
+            text-xs font-semibold text-gray-800 shadow-sm
           "
         >
+          <span className="h-1.5 w-1.5 rounded-full bg-red-600" />
           {venue.venue_type}
         </div>
 
+        <WishlistButton className="absolute top-3 right-3 z-10" />
       </div>
 
-      {/* Content */}
-
-      <div className="p-4">
-
-        <div
-          className="
-            flex
-            justify-between
-            items-start
-            gap-2
-          "
-        >
-          <h3
-            className="
-              font-bold
-              text-lg
-              text-gray-900
-              line-clamp-1
-            "
-          >
+      <div className="flex flex-1 flex-col p-5">
+        <div className="flex items-start justify-between gap-2">
+          <h3 className="line-clamp-1 text-lg font-bold text-gray-900">
             {venue.name}
           </h3>
 
-          <div
-            className="
-              flex
-              items-center
-              gap-1
-            "
-          >
-            <Star
-              size={16}
-              fill="#ef4444"
-              className="text-red-500"
-            />
-
-            <span
-              className="
-                text-sm
-                font-medium
-              "
-            >
+          <div className="flex shrink-0 items-center gap-1 rounded-full bg-red-50 px-2.5 py-1">
+            <Star size={13} className="fill-red-600 text-red-600" />
+            <span className="text-xs font-semibold text-gray-800">
               {venue.rating}
             </span>
           </div>
         </div>
 
-        <div className="flex justify-between">
-            {/* Location */}
-            <div
-            className="
-                flex
-                items-center
-                gap-2
-                mt-3
-                text-gray-500
-            "
-            >
-            <MapPin
-                size={16}
-                className="text-red-500"
-            />
-
-            <span className="text-sm">
-                {venue.city}
-            </span>
-            </div>
-
-            {/* Capacity */}
-
-            <div
-            className="
-                flex
-                items-center
-                gap-2
-                mt-3
-                text-gray-500
-            "
-            >
-            <Users
-                size={16}
-                className="text-red-500"
-            />
-
-                <span className="text-sm">
-                    {/* {venue.min_capacity}
-                    {" - "} */}
-                    {venue.max_capacity}
-                    {" Guests"}
-                </span>
-            </div>
-        </div>
-
-        {/* Price */}
-
-        <div
-          className="
-            mt-4
-            pt-4
-            border-t
-            border-gray-100
-            flex
-            justify-between
-            items-center
-          "
-        >
-          <div>
-
-            <p
-              className="
-                text-xs
-                text-gray-500
-              "
-            >
-              Starting from
-            </p>
-
-            <h4
-              className="
-                text-xl
-                font-bold
-                text-gray-900
-              "
-            >
-              ₹{Number(
-                venue.price_per_day
-              ).toLocaleString()}
-            </h4>
-
+        <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-sm text-gray-500">
+          <div className="flex min-w-0 items-center gap-1.5">
+            <MapPin size={15} className="shrink-0 text-red-600" />
+            <span className="truncate">{venue.city}</span>
           </div>
 
-            <Link
-            to={`/venues/${venue.slug}`}
-            className="
-                block
-                text-center
-                text-sm
-                py-2
-                px-3
-                border
-                rounded-xl
-                text-white
-                bg-red-600
-                hover:bg-red-500
-            "
-            >
-            View Details
-            </Link>
+          <div className="flex items-center gap-1.5">
+            <Users size={15} className="shrink-0 text-red-600" />
+            <span>Up to {venue.max_capacity} guests</span>
+          </div>
         </div>
 
+        <div className="mt-auto flex items-end justify-between border-t border-gray-100 pt-5">
+          <div>
+            <p className="text-xs text-gray-500">Starting from</p>
+
+            <p className="text-xl font-bold text-gray-900">
+              ₹{Number(venue.price_per_day).toLocaleString()}
+              <span className="text-xs font-medium text-gray-400"> / day</span>
+            </p>
+          </div>
+
+          <span
+            className="
+              flex h-9 w-9 shrink-0 items-center justify-center
+              rounded-full border border-gray-200 text-gray-400
+              transition-[background-color,border-color,color] duration-200 ease-out
+              group-hover:border-red-600 group-hover:bg-red-600 group-hover:text-white
+            "
+          >
+            <ArrowUpRight size={16} />
+          </span>
+        </div>
       </div>
     </Link>
   );
 };
 
-export default VenueCard;
+export default memo(VenueCard);

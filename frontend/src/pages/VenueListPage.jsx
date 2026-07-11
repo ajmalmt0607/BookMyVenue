@@ -1,4 +1,5 @@
 import {
+  useCallback,
   useEffect,
   useState,
 } from "react";
@@ -6,16 +7,18 @@ import {
 import { useSearchParams } from "react-router-dom";
 
 import VenueGrid from "../components/venue/VenueGrid";
-import VenueFilterSidebar from "../components/venue/VenueFilterSidebar";
+import VenueFilters from "../components/venue/VenueFilters";
 import VenueSearchBar from "../components/venue/VenueSearchBar";
 import VenueSortDropdown from "../components/venue/VenueSortDropdown";
 import VenuePagination from "../components/venue/VenuePagination";
 
 import { getVenues } from "../services/venueService";
 
+const RESETTABLE_FILTER_KEYS = ["location", "venue_type", "guests"];
+
 const VenueListPage = () => {
 
-  const [searchParams] =
+  const [searchParams, setSearchParams] =
     useSearchParams();
 
   const [venues, setVenues] =
@@ -86,6 +89,15 @@ const VenueListPage = () => {
 
   }, [searchParams]);
 
+  const handleResetFilters = useCallback(() => {
+    const params = new URLSearchParams(searchParams);
+
+    RESETTABLE_FILTER_KEYS.forEach((key) => params.delete(key));
+    params.set("page", 1);
+
+    setSearchParams(params);
+  }, [searchParams, setSearchParams]);
+
   return (
         <section
         className="
@@ -98,12 +110,13 @@ const VenueListPage = () => {
 
         {/* Header */}
 
-        <div className="mb-8">
+        {/* <div className="mb-8 text-center items-center">
 
             <h1
             className="
-                text-4xl
+                text-2xl
                 font-bold
+                tracking-tight
                 text-gray-900
             "
             >
@@ -118,20 +131,19 @@ const VenueListPage = () => {
             >
             Browse verified venues for
             weddings, events,
-            conferences and more.
+            conferences and more
             </p>
 
-        </div>
+        </div> */}
 
-        {/* Search + Sort */}
+        {/* Search + Filters + Sort */}
 
         <div
             className="
             flex
             flex-col
-            lg:flex-row
-            gap-4
-            justify-between
+            sm:flex-row
+            gap-3
             mb-8
             "
         >
@@ -140,7 +152,10 @@ const VenueListPage = () => {
             <VenueSearchBar />
             </div>
 
-            <VenueSortDropdown />
+            <div className="flex gap-3">
+              <VenueFilters />
+              <VenueSortDropdown />
+            </div>
 
         </div>
 
@@ -151,7 +166,7 @@ const VenueListPage = () => {
             flex
             justify-between
             items-center
-            mb-8
+            mb-6
             "
         >
 
@@ -168,42 +183,22 @@ const VenueListPage = () => {
 
         </div>
 
-        {/* Main Content */}
+        {/* Venue Listing */}
 
-        <div
-            className="
-            grid
-            lg:grid-cols-[280px_1fr]
-            gap-8
-            items-start
-            "
-        >
+        <VenueGrid
+            venues={venues}
+            loading={loading}
+            onResetFilters={handleResetFilters}
+        />
 
-            {/* Filters */}
-
-            <VenueFilterSidebar />
-
-            {/* Venue Listing */}
-
-            <div>
-
-            <VenueGrid
-                venues={venues}
-                loading={loading}
-            />
-
-            <VenuePagination
-                totalPages={
-                pagination?.total_pages || 1
-                }
-                currentPage={
-                pagination?.page || 1
-                }
-            />
-
-            </div>
-
-        </div>
+        <VenuePagination
+            totalPages={
+            pagination?.total_pages || 1
+            }
+            currentPage={
+            pagination?.page || 1
+            }
+        />
 
         </section>
   );

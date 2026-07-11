@@ -36,7 +36,7 @@ const VenueSortDropdown = () => {
           bg-white
           border
           border-gray-200
-          rounded-xl
+          rounded-2xl
           px-4
           pr-10
           text-sm
@@ -45,7 +45,13 @@ const VenueSortDropdown = () => {
           outline-none
           cursor-pointer
           transition-all
+          duration-200
+          ease-out
+          hover:border-red-300
+          hover:shadow-sm
           focus:border-red-500
+          focus:ring-4
+          focus:ring-red-100
         "
       >
         <option value="-rating">
@@ -73,7 +79,7 @@ const VenueSortDropdown = () => {
           right-4
           top-1/2
           -translate-y-1/2
-          text-gray-500
+          text-red-600
           pointer-events-none
         "
       />

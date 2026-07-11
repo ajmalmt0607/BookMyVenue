@@ -4,6 +4,7 @@
   --animate-fade-in-up: fade-in-up 0.7s ease-out both;
   --animate-float: float 6s ease-in-out infinite;
   --animate-float-slow: float 7.5s ease-in-out infinite;
+  --animate-shimmer: shimmer 1.6s ease-in-out infinite;
 }
 
 @keyframes fade-in-up {
@@ -24,5 +25,14 @@
   }
   50% {
     transform: translateY(-10px);
+  }
+}
+
+@keyframes shimmer {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(100%);
   }
 }
