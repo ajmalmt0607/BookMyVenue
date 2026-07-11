@@ -1,6 +1,6 @@
 from django.urls import path
 
-from api.v1.venues.views import BookingCustomerDetailAPIView, BookingDetailAPIView, ConfirmPaymentAPIView, InitiatePaymentAPIView, LocationSearchAPIView, ReserveBookingAPIView, StripeWebhookAPIView, ValidateReservationAPIView, VenueAvailabilityAPIView, VenueDetailAPIView, VenueListAPIView
+from api.v1.venues.views import BookingCustomerDetailAPIView, BookingDetailAPIView, ConfirmPaymentAPIView, InitiatePaymentAPIView, LocationSearchAPIView, ReserveBookingAPIView, StripeWebhookAPIView, ValidateReservationAPIView, VenueAvailabilityAPIView, VenueDetailAPIView, VenueListAPIView, VenueReviewListAPIView
 
 
 
@@ -23,6 +23,11 @@ urlpatterns = [
         "<slug:slug>/availability/",
         VenueAvailabilityAPIView.as_view(),
         name="venue-availability",
+    ),
+    path(
+        "<slug:slug>/reviews/",
+        VenueReviewListAPIView.as_view(),
+        name="venue-reviews",
     ),
     path(
         "bookings/reserve/",

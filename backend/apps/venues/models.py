@@ -1,5 +1,6 @@
 from django.db import models
 from django.conf import settings
+from django.core.validators import MaxValueValidator, MinValueValidator
 from apps.common.functions import generate_slug
 from apps.common.models import BaseModel
 
@@ -207,3 +208,79 @@ class Payment(BaseModel):
         db_table = "venues_payments"
         verbose_name = "Venue Payment"
         verbose_name_plural = "Venue Payments"
+
+
+class Review(BaseModel):
+    venue = models.ForeignKey(Venue, on_delete=models.CASCADE, related_name="reviews")
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="reviews")
+    rating = models.PositiveSmallIntegerField(
+        validators=[MinValueValidator(1), MaxValueValidator(5)],
+    )
+    title = models.CharField(max_length=255, blank=True)
+    description = models.TextField()
+    is_verified_booking = models.BooleanField(default=False)
+    is_active = models.BooleanField(default=True)
+
+    class Meta:
+        db_table = "venues_review"
+        ordering = ["-created_at"]
+        verbose_name = "Review"
+        verbose_name_plural = "Reviews"
+
+        indexes = [
+            models.Index(fields=["venue", "is_active", "-created_at"]),
+        ]
+
+        constraints = [
+            models.UniqueConstraint(
+                fields=["venue", "user"],
+                name="unique_review_per_user_per_venue",
+            ),
+        ]
+
+    def __str__(self):
+        return f"{self.venue.name} - {self.rating}★ by {self.user.email}"
+
+
+class PolicyType(BaseModel):
+    name = models.CharField(max_length=100, unique=True)
+    icon = models.CharField(max_length=100, blank=True, null=True)
+    description = models.TextField(blank=True, null=True)
+    is_active = models.BooleanField(default=True)
+
+    class Meta:
+        db_table = "venues_policy_type"
+        ordering = ["name"]
+        verbose_name = "Policy Type"
+        verbose_name_plural = "Policy Types"
+
+    def __str__(self):
+        return self.name
+
+
+class VenuePolicy(BaseModel):
+    venue = models.ForeignKey(Venue, on_delete=models.CASCADE, related_name="policies")
+    policy_type = models.ForeignKey(PolicyType, on_delete=models.PROTECT, related_name="venue_policies")
+    content = models.TextField()
+    display_order = models.PositiveIntegerField(default=1)
+    is_active = models.BooleanField(default=True)
+
+    class Meta:
+        db_table = "venues_venue_policy"
+        ordering = ["display_order"]
+        verbose_name = "Venue Policy"
+        verbose_name_plural = "Venue Policies"
+
+        indexes = [
+            models.Index(fields=["venue", "is_active"]),
+        ]
+
+        constraints = [
+            models.UniqueConstraint(
+                fields=["venue", "policy_type"],
+                name="unique_policy_per_venue",
+            ),
+        ]
+
+    def __str__(self):
+        return f"{self.venue.name} - {self.policy_type.name}"

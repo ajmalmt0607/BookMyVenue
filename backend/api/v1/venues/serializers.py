@@ -1,5 +1,16 @@
-from apps.venues.models import Amenity, Booking, BookingSlot, Venue, VenueImage, VenueTimeSlot
+from apps.venues.models import (
+    Amenity,
+    Booking,
+    BookingSlot,
+    PolicyType,
+    Review,
+    Venue,
+    VenueImage,
+    VenuePolicy,
+    VenueTimeSlot,
+)
 from apps.venues.services.media.thumbnails import get_thumbnail_url
+from apps.venues.services.reviews.review_service import ReviewService
 from rest_framework import serializers
 
 
@@ -117,6 +128,62 @@ class AmenitySerializer(serializers.ModelSerializer):
         ]
 
 
+class ReviewAuthorSerializer(serializers.Serializer):
+    id = serializers.UUIDField()
+    full_name = serializers.SerializerMethodField()
+
+    def get_full_name(self, obj):
+
+        name = f"{obj.first_name} {obj.last_name}".strip()
+
+        return name or obj.email.split("@")[0]
+
+
+class ReviewSerializer(serializers.ModelSerializer):
+
+    user = ReviewAuthorSerializer(read_only=True)
+
+    class Meta:
+        model = Review
+
+        fields = [
+            "id",
+            "user",
+            "rating",
+            "title",
+            "description",
+            "is_verified_booking",
+            "created_at",
+        ]
+
+
+class PolicyTypeSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = PolicyType
+
+        fields = [
+            "id",
+            "name",
+            "icon",
+            "description",
+        ]
+
+
+class VenuePolicySerializer(serializers.ModelSerializer):
+    policy_type = PolicyTypeSerializer(read_only=True)
+
+    class Meta:
+        model = VenuePolicy
+
+        fields = [
+            "id",
+            "policy_type",
+            "content",
+            "display_order",
+        ]
+
+
 class VenueTimeSlotSerializer(
     serializers.ModelSerializer
 ):
@@ -153,6 +220,18 @@ class VenueDetailSerializer(
         read_only=True,
     )
 
+    # `obj.policies.all()` reuses the view's Prefetch cache (already
+    # filtered to is_active and ordered by display_order), so this stays
+    # a single query for the whole detail request.
+    policies = VenuePolicySerializer(
+        many=True,
+        read_only=True,
+    )
+
+    map = serializers.SerializerMethodField()
+
+    reviews = serializers.SerializerMethodField()
+
     class Meta:
 
         model = Venue
@@ -188,7 +267,54 @@ class VenueDetailSerializer(
 
             "images",
             "amenities",
+            "policies",
+            "map",
+            "reviews",
         ]
+
+    def get_map(self, obj):
+        # No runtime geocoding: coordinates are returned only if already
+        # stored, otherwise the frontend gets a human-readable fallback
+        # label built purely from existing address fields.
+        has_coordinates = (
+            obj.latitude is not None
+            and obj.longitude is not None
+        )
+
+        return {
+            "latitude": obj.latitude if has_coordinates else None,
+            "longitude": obj.longitude if has_coordinates else None,
+            "location_name": self._map_location_label(obj),
+        }
+
+    def _map_location_label(self, obj):
+
+        parts = [
+            obj.location_name,
+            obj.city,
+            obj.state,
+        ]
+
+        label = ", ".join(part for part in parts if part)
+
+        return label or obj.country
+
+    def get_reviews(self, obj):
+        # One combined field (list + summary) so this only ever costs a
+        # single aggregate query + a single limited select, instead of
+        # two separate SerializerMethodFields each re-running the query.
+        context = ReviewService.get_review_context(obj)
+
+        return {
+            "items": ReviewSerializer(
+                context["reviews"],
+                many=True,
+                context=self.context,
+            ).data,
+            "average_rating": context["average_rating"],
+            "total_reviews": context["total_reviews"],
+            "has_more_reviews": context["has_more_reviews"],
+        }
 
 
 class AvailableSlotSerializer(serializers.ModelSerializer):

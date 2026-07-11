@@ -9,20 +9,20 @@ from rest_framework.filters import (
     OrderingFilter,
     SearchFilter,
 )
-from apps.venues.models import Booking, BookingSlot, Venue, VenueTimeSlot
+from apps.venues.models import Booking, BookingSlot, Venue, VenuePolicy, VenueTimeSlot
 from apps.common.pagination import StandardPagination
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import generics
-from .serializers import AvailableSlotSerializer, BookingDetailSerializer, ReserveBookingSerializer, UpdateBookingCustomerSerializer, VenueDetailSerializer, VenueListSerializer
+from .serializers import AvailableSlotSerializer, BookingDetailSerializer, ReserveBookingSerializer, ReviewSerializer, UpdateBookingCustomerSerializer, VenueDetailSerializer, VenueListSerializer
 from rest_framework.generics import ListAPIView, RetrieveAPIView
 from rest_framework.permissions import AllowAny
 from rest_framework.permissions import IsAuthenticated
 
 from datetime import date
 from django.conf import settings
-from django.db.models import Exists, OuterRef
+from django.db.models import Exists, OuterRef, Prefetch
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from django.utils.decorators import method_decorator
@@ -31,6 +31,7 @@ from django.views.decorators.csrf import csrf_exempt
 from apps.venues.services.locations.factory import (
     get_location_service,
 )
+from apps.venues.services.reviews.review_service import ReviewService
 
 logger = logging.getLogger(__name__)
 
@@ -125,6 +126,18 @@ class VenueDetailAPIView(RetrieveAPIView):
 
     def get_queryset(self):
 
+        # Prefetched (not just `.prefetch_related("policies")`) so the
+        # inactive-policy filter and display_order sort happen once here
+        # instead of the serializer re-filtering/sorting in Python, and
+        # `select_related` on the prefetch queryset avoids an N+1 when
+        # VenuePolicySerializer nests each policy's policy_type.
+        active_policies = (
+            VenuePolicy.objects
+            .filter(is_active=True)
+            .select_related("policy_type")
+            .order_by("display_order")
+        )
+
         return (
             Venue.objects
             .filter(
@@ -138,9 +151,10 @@ class VenueDetailAPIView(RetrieveAPIView):
             .prefetch_related(
                 "amenities",
                 "images",
+                Prefetch("policies", queryset=active_policies),
             )
         )
-    
+
 
 class VenueAvailabilityAPIView(APIView):
 
@@ -242,7 +256,43 @@ class VenueAvailabilityAPIView(APIView):
             },
             status=status.HTTP_200_OK,
         )
-    
+
+
+class VenueReviewListAPIView(APIView):
+
+    permission_classes = [AllowAny]
+
+    def get(self, request, slug):
+
+        venue = get_object_or_404(
+            Venue.active_objects.only("id", "slug"),
+            slug=slug,
+            status=Venue.Status.APPROVED,
+            is_active=True,
+        )
+
+        context = ReviewService.get_review_context(venue)
+
+        serializer = ReviewSerializer(
+            context["reviews"],
+            many=True,
+            context={"request": request},
+        )
+
+        return Response(
+            {
+                "success": True,
+                "message": "Reviews fetched successfully.",
+                "data": {
+                    "reviews": serializer.data,
+                    "average_rating": context["average_rating"],
+                    "total_reviews": context["total_reviews"],
+                    "has_more_reviews": context["has_more_reviews"],
+                },
+            },
+            status=status.HTTP_200_OK,
+        )
+
 
 class ReserveBookingAPIView(APIView):
 

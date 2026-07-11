@@ -4,8 +4,11 @@ from .models import (
     Amenity,
     Booking,
     Payment,
+    PolicyType,
+    Review,
     Venue,
     VenueImage,
+    VenuePolicy,
     VenueTimeSlot,
     VenueType,
 )
@@ -14,6 +17,23 @@ from .models import (
 class VenueImageInline(admin.TabularInline):
     model = VenueImage
     extra = 1
+
+
+class VenuePolicyInline(admin.TabularInline):
+    model = VenuePolicy
+    extra = 0
+    fields = (
+        "policy_type",
+        "content",
+        "display_order",
+        "is_active",
+    )
+    autocomplete_fields = (
+        "policy_type",
+    )
+    ordering = (
+        "display_order",
+    )
 
 
 @admin.register(VenueType)
@@ -106,6 +126,7 @@ class VenueAdmin(admin.ModelAdmin):
 
     inlines = [
         VenueImageInline,
+        VenuePolicyInline,
     ]
 
     fieldsets = (
@@ -363,4 +384,113 @@ class PaymentAdmin(admin.ModelAdmin):
 
     ordering = (
         "-created_at",
+    )
+
+
+@admin.register(Review)
+class ReviewAdmin(admin.ModelAdmin):
+
+    list_display = (
+        "venue",
+        "user",
+        "rating",
+        "is_verified_booking",
+        "is_active",
+        "created_at",
+    )
+
+    list_filter = (
+        "rating",
+        "is_verified_booking",
+        "is_active",
+        "created_at",
+    )
+
+    search_fields = (
+        "venue__name",
+        "user__email",
+        "title",
+    )
+
+    autocomplete_fields = (
+        "venue",
+        "user",
+    )
+
+    readonly_fields = (
+        "id",
+        "created_at",
+        "updated_at",
+    )
+
+    ordering = (
+        "-created_at",
+    )
+
+
+@admin.register(PolicyType)
+class PolicyTypeAdmin(admin.ModelAdmin):
+
+    list_display = (
+        "name",
+        "icon",
+        "is_active",
+        "created_at",
+    )
+
+    list_filter = (
+        "is_active",
+    )
+
+    search_fields = (
+        "name",
+    )
+
+    readonly_fields = (
+        "id",
+        "created_at",
+        "updated_at",
+    )
+
+
+@admin.register(VenuePolicy)
+class VenuePolicyAdmin(admin.ModelAdmin):
+
+    list_display = (
+        "venue",
+        "policy_type",
+        "display_order",
+        "is_active",
+        "created_at",
+    )
+
+    list_editable = (
+        "display_order",
+        "is_active",
+    )
+
+    list_filter = (
+        "policy_type",
+        "is_active",
+    )
+
+    search_fields = (
+        "venue__name",
+        "policy_type__name",
+    )
+
+    autocomplete_fields = (
+        "venue",
+        "policy_type",
+    )
+
+    readonly_fields = (
+        "id",
+        "created_at",
+        "updated_at",
+    )
+
+    ordering = (
+        "venue",
+        "display_order",
     )
