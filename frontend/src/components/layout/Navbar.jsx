@@ -3,15 +3,12 @@ import { useState } from "react";
 import {
   Building2,
   Menu,
-  CircleUserRound,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 import Button from "../ui/Button";
-import CustomNavLink from "../ui/NavLink";
 import MobileMenu from "./MobileMenu";
 
-import { ROUTES } from "../../constants/routes";
 import UserMenu from "../navbar/UserMenu";
 
 const Navbar = () => {
@@ -30,7 +27,7 @@ const Navbar = () => {
           border-gray-100
         "
       >
-        <div className="max-w-7xl mx-auto px-5">
+        <div className="max-w-7xl mx-auto px-5 lg:px-6">
 
           <div
             className="
@@ -69,41 +66,6 @@ const Navbar = () => {
                 BookMyVenue
               </h1>
             </div>
-
-            {/* Desktop Navigation */}
-
-            <nav
-              className="
-                hidden
-                lg:flex
-                items-center
-                gap-10
-              "
-            >
-              <CustomNavLink to={ROUTES.HOME}>
-                Home
-              </CustomNavLink>
-
-              <CustomNavLink to={ROUTES.VENUES}>
-                Venues
-              </CustomNavLink>
-
-              <CustomNavLink to={ROUTES.HOW_IT_WORKS}>
-                How It Works
-              </CustomNavLink>
-
-              <CustomNavLink to={ROUTES.FOR_OWNERS}>
-                For Owners
-              </CustomNavLink>
-
-              <CustomNavLink to={ROUTES.PRICING}>
-                Pricing
-              </CustomNavLink>
-
-              <CustomNavLink to={ROUTES.ABOUT}>
-                About Us
-              </CustomNavLink>
-            </nav>
 
             {/* Desktop Actions */}
 

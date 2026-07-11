@@ -1,19 +1,26 @@
 import { useEffect } from "react";
 
+// Accepts either a single ref or an array of refs — an element is
+// considered "inside" if any of the given refs contain it. This lets
+// callers with portal-rendered content (e.g. a trigger ref plus a
+// separately-mounted panel ref) treat both as one logical region.
 const useClickOutside = (
-  ref,
+  refs,
   callback
 ) => {
   useEffect(() => {
+    const refList = Array.isArray(refs) ? refs : [refs];
+
     const handleClick = (
       event
     ) => {
-      if (
-        ref.current &&
-        !ref.current.contains(
-          event.target
-        )
-      ) {
+      const isInside = refList.some(
+        (ref) =>
+          ref.current &&
+          ref.current.contains(event.target)
+      );
+
+      if (!isInside) {
         callback();
       }
     };
@@ -29,7 +36,7 @@ const useClickOutside = (
         handleClick
       );
     };
-  }, [ref, callback]);
+  }, [refs, callback]);
 };
 
 export default useClickOutside;

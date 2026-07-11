@@ -2,6 +2,8 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { ChevronDown, Search, Check } from "lucide-react";
 
 import useClickOutside from "../../hooks/useClickOutside";
+import usePopoverPosition from "../../hooks/usePopoverPosition";
+import PopoverPortal from "../ui/PopoverPortal";
 import { VENUE_TYPE_OPTIONS } from "../../constants/venueTypes";
 
 const VenueTypeDropdown = ({
@@ -17,8 +19,11 @@ const VenueTypeDropdown = ({
   const containerRef = useRef(null);
   const triggerRef = useRef(null);
   const searchInputRef = useRef(null);
+  const panelRef = useRef(null);
 
-  useClickOutside(containerRef, () => setIsOpen(false));
+  useClickOutside([containerRef, panelRef], () => setIsOpen(false));
+
+  const position = usePopoverPosition(containerRef, isOpen);
 
   const filteredOptions = useMemo(() => {
     if (!query.trim()) return options;
@@ -135,82 +140,88 @@ const VenueTypeDropdown = ({
         />
       </button>
 
-      <div
-        role="listbox"
-        className={`
-          absolute left-0 right-0 top-[calc(100%+8px)] z-50
-          bg-white rounded-2xl shadow-xl border border-gray-100
-          overflow-hidden origin-top
-          transition-all duration-200 ease-out
-          ${
-            isOpen
-              ? "opacity-100 scale-100 translate-y-0 pointer-events-auto"
-              : "opacity-0 scale-95 -translate-y-1 pointer-events-none"
-          }
-        `}
+      <PopoverPortal
+        position={position}
+        panelRef={panelRef}
+        matchWidth
+        className="z-9999"
       >
-        <div className="p-2 border-b border-gray-100">
-          <div className="relative">
-            <Search
-              size={16}
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
-            />
+        <div
+          role="listbox"
+          className={`
+            bg-white rounded-2xl shadow-xl border border-gray-100
+            overflow-hidden origin-top
+            transition-all duration-200 ease-out
+            ${
+              isOpen
+                ? "opacity-100 scale-100 translate-y-0 pointer-events-auto"
+                : "opacity-0 scale-95 -translate-y-1 pointer-events-none"
+            }
+          `}
+        >
+          <div className="p-2 border-b border-gray-100">
+            <div className="relative">
+              <Search
+                size={16}
+                className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+              />
 
-            <input
-              ref={searchInputRef}
-              type="text"
-              value={query}
-              onChange={handleQueryChange}
-              onKeyDown={handleListKeyDown}
-              placeholder="Search venue type..."
-              className="
-                w-full h-10 pl-9 pr-3 rounded-xl bg-gray-50 text-sm
-                outline-none transition-colors duration-150
-                focus:bg-white focus:ring-2 focus:ring-red-100
-              "
-            />
+              <input
+                ref={searchInputRef}
+                type="text"
+                value={query}
+                onChange={handleQueryChange}
+                onKeyDown={handleListKeyDown}
+                placeholder="Search venue type..."
+                className="
+                  w-full h-10 pl-9 pr-3 rounded-xl bg-gray-50 text-sm
+                  outline-none transition-colors duration-150
+                  focus:bg-white focus:ring-2 focus:ring-red-100
+                "
+              />
+            </div>
           </div>
-        </div>
 
-        <ul className="max-h-64 overflow-y-auto py-1">
-          {filteredOptions.length === 0 && (
-            <li className="px-4 py-3 text-sm text-gray-400">
-              No venue types found
-            </li>
-          )}
-
-          {filteredOptions.map((option, index) => {
-            const Icon = option.icon;
-            const isSelected = option.value === value;
-            const isHighlighted = index === highlightedIndex;
-
-            return (
-              <li
-                key={option.value || "all"}
-                role="option"
-                aria-selected={isSelected}
-                onMouseEnter={() => setHighlightedIndex(index)}
-                onClick={() => selectOption(option)}
-                className={`
-                  flex items-center gap-3 px-4 py-2.5 cursor-pointer text-sm
-                  transition-colors duration-100
-                  ${isHighlighted ? "bg-red-50" : ""}
-                  ${isSelected ? "text-red-600 font-semibold" : "text-gray-700"}
-                `}
-              >
-                <Icon
-                  size={16}
-                  className={isSelected ? "text-red-600" : "text-gray-400"}
-                />
-
-                <span className="flex-1">{option.label}</span>
-
-                {isSelected && <Check size={16} className="text-red-600" />}
+          <ul className="max-h-64 overflow-y-auto py-1">
+            {filteredOptions.length === 0 && (
+              <li className="px-4 py-3 text-sm text-gray-400">
+                No venue types found
               </li>
-            );
-          })}
-        </ul>
-      </div>
+            )}
+
+            {filteredOptions.map((option, index) => {
+              const Icon = option.icon;
+              const isSelected = option.value === value;
+              const isHighlighted = index === highlightedIndex;
+
+              return (
+                <li
+                  key={option.value || "all"}
+                  role="option"
+                  aria-selected={isSelected}
+                  onMouseEnter={() => setHighlightedIndex(index)}
+                  onClick={() => selectOption(option)}
+                  className={`
+                    flex items-center gap-3 px-4 py-2.5 cursor-pointer text-sm
+                    transition-colors duration-100
+                    ${isHighlighted ? "bg-red-50" : ""}
+                    ${isSelected ? "text-red-600 font-semibold" : "text-gray-700"}
+                  `}
+                >
+                  <Icon
+                    size={16}
+                    className={isSelected ? "text-red-600" : "text-gray-400"}
+                  />
+
+                  <span className="flex-1">{option.label}</span>
+
+                  {isSelected && <Check size={16} className="text-red-600" />}
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+      </PopoverPortal>
     </div>
   );
 };

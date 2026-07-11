@@ -3,6 +3,8 @@ import { MapPin, Loader2, SearchX } from "lucide-react";
 
 import useClickOutside from "../../hooks/useClickOutside";
 import useDebounce from "../../hooks/useDebounce";
+import usePopoverPosition from "../../hooks/usePopoverPosition";
+import PopoverPortal from "../ui/PopoverPortal";
 import { searchLocations } from "../../services/locationService";
 
 const LocationSearch = ({
@@ -20,11 +22,16 @@ const LocationSearch = ({
 
   const containerRef = useRef(null);
   const inputRef = useRef(null);
+  const panelRef = useRef(null);
   const requestIdRef = useRef(0);
 
   const debouncedQuery = useDebounce(query, 400);
 
-  useClickOutside(containerRef, () => setIsOpen(false));
+  useClickOutside([containerRef, panelRef], () => setIsOpen(false));
+
+  const showPanel = isOpen && query.trim().length >= 2;
+
+  const position = usePopoverPosition(containerRef, showPanel);
 
   // Keep the local text in sync when the parent resets `value` externally
   // (e.g. clearing the form). Done during render, not an effect, since this
@@ -100,8 +107,6 @@ const LocationSearch = ({
     }
   };
 
-  const showPanel = isOpen && query.trim().length >= 2;
-
   return (
     <div ref={containerRef} className="relative w-full">
       <MapPin
@@ -130,70 +135,76 @@ const LocationSearch = ({
         `}
       />
 
-      <div
-        role="listbox"
-        className={`
-          absolute left-0 right-0 top-[calc(100%+8px)] z-50
-          bg-white rounded-2xl shadow-xl border border-gray-100
-          overflow-hidden origin-top
-          transition-all duration-200 ease-out
-          ${
-            showPanel
-              ? "opacity-100 scale-100 translate-y-0 pointer-events-auto"
-              : "opacity-0 scale-95 -translate-y-1 pointer-events-none"
-          }
-        `}
+      <PopoverPortal
+        position={position}
+        panelRef={panelRef}
+        matchWidth
+        className="z-9999"
       >
-        {loading && (
-          <div className="flex items-center gap-2 px-4 py-4 text-sm text-gray-500">
-            <Loader2 size={16} className="animate-spin text-red-600" />
-            Searching locations...
-          </div>
-        )}
+        <div
+          role="listbox"
+          className={`
+            bg-white rounded-2xl shadow-xl border border-gray-100
+            overflow-hidden origin-top
+            transition-all duration-200 ease-out
+            ${
+              showPanel
+                ? "opacity-100 scale-100 translate-y-0 pointer-events-auto"
+                : "opacity-0 scale-95 -translate-y-1 pointer-events-none"
+            }
+          `}
+        >
+          {loading && (
+            <div className="flex items-center gap-2 px-4 py-4 text-sm text-gray-500">
+              <Loader2 size={16} className="animate-spin text-red-600" />
+              Searching locations...
+            </div>
+          )}
 
-        {!loading && results.length === 0 && (
-          <div className="flex flex-col items-center gap-2 px-4 py-6 text-sm text-gray-400">
-            <SearchX size={20} />
-            No locations found for &quot;{query}&quot;
-          </div>
-        )}
+          {!loading && results.length === 0 && (
+            <div className="flex flex-col items-center gap-2 px-4 py-6 text-sm text-gray-400">
+              <SearchX size={20} />
+              No locations found for &quot;{query}&quot;
+            </div>
+          )}
 
-        {!loading && results.length > 0 && (
-          <ul className="max-h-64 overflow-y-auto py-1">
-            {results.map((location, index) => (
-              <li
-                key={`${location.location_name}-${index}`}
-                role="option"
-                aria-selected={index === highlightedIndex}
-                onMouseEnter={() => setHighlightedIndex(index)}
-                onClick={() => selectLocation(location)}
-                className={`
-                  flex items-start gap-3 px-4 py-2.5 cursor-pointer text-sm
-                  transition-colors duration-100
-                  ${index === highlightedIndex ? "bg-red-50" : ""}
-                `}
-              >
-                <MapPin
-                  size={16}
-                  className="text-red-600 mt-0.5 shrink-0"
-                />
+          {!loading && results.length > 0 && (
+            <ul className="max-h-64 overflow-y-auto py-1">
+              {results.map((location, index) => (
+                <li
+                  key={`${location.location_name}-${index}`}
+                  role="option"
+                  aria-selected={index === highlightedIndex}
+                  onMouseEnter={() => setHighlightedIndex(index)}
+                  onClick={() => selectLocation(location)}
+                  className={`
+                    flex items-start gap-3 px-4 py-2.5 cursor-pointer text-sm
+                    transition-colors duration-100
+                    ${index === highlightedIndex ? "bg-red-50" : ""}
+                  `}
+                >
+                  <MapPin
+                    size={16}
+                    className="text-red-600 mt-0.5 shrink-0"
+                  />
 
-                <div className="flex flex-col min-w-0">
-                  <span className="font-medium text-gray-800 truncate">
-                    {location.location_name}
-                  </span>
-
-                  {location.full_address && (
-                    <span className="text-xs text-gray-400 truncate">
-                      {location.full_address}
+                  <div className="flex flex-col min-w-0">
+                    <span className="font-medium text-gray-800 truncate">
+                      {location.location_name}
                     </span>
-                  )}
-                </div>
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
+
+                    {location.full_address && (
+                      <span className="text-xs text-gray-400 truncate">
+                        {location.full_address}
+                      </span>
+                    )}
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      </PopoverPortal>
     </div>
   );
 };
