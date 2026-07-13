@@ -1,176 +1,126 @@
-import {
-  useEffect,
-  useState,
-} from "react";
+import { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
 
-import {
-  useParams,
-} from "react-router-dom";
-
-import {
-  getVenueDetail,
-  getVenueAvailability,
-} from "../services/venueService";
+import { getVenueDetail } from "../services/venueService";
 
 import VenueGallery from "../components/venue-detail/VenueGallery";
 import VenueInfo from "../components/venue-detail/VenueInfo";
-import VenueAmenities from "../components/venue-detail/VenueAmenities";
-import VenueBookingCard from "../components/venue-detail/VenueBookingCard";
+import VenueDescription from "../components/venue-detail/VenueDescription";
+import AmenitiesSection from "../components/venue-detail/AmenitiesSection";
+import ThingsToKnowSection from "../components/venue-detail/ThingsToKnowSection";
+import ReviewsSection from "../components/venue-detail/ReviewsSection";
+import MapSection from "../components/venue-detail/MapSection";
+import NearbySection from "../components/venue-detail/NearbySection";
+import RelatedVenueCarousel from "../components/venue-detail/RelatedVenueCarousel";
+import WhyBookSection from "../components/venue-detail/WhyBookSection";
+import HostedEventsGallery from "../components/venue-detail/HostedEventsGallery";
+import FAQSection from "../components/venue-detail/FAQSection";
+import ContactVenueCard from "../components/venue-detail/ContactVenueCard";
+import BookingCard from "../components/venue-detail/BookingCard";
+import LazySection from "../components/venue-detail/LazySection";
+
+import {
+  GallerySkeleton,
+  BookingCardSkeleton,
+  DescriptionSkeleton,
+  AmenitiesSkeleton,
+  PoliciesSkeleton,
+  ReviewsSkeleton,
+  MapSkeleton,
+  RelatedVenuesSkeleton,
+} from "../components/venue-detail/VenueDetailSkeletons";
 
 const VenueDetailPage = () => {
-
   const { slug } = useParams();
 
-  const [venue, setVenue] =
-    useState(null);
-
-  const [loading, setLoading] =
-    useState(true);
-
-  const [slots, setSlots] =
-    useState([]);
-
-  const [selectedDate, setSelectedDate] =
-    useState(
-      new Date()
-        .toISOString()
-        .split("T")[0]
-    );
+  const [venue, setVenue] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    let cancelled = false;
 
     const fetchVenue = async () => {
-
       try {
-
-        const response =
-          await getVenueDetail(slug);
-
-        setVenue(response);
-
+        const response = await getVenueDetail(slug);
+        if (!cancelled) setVenue(response);
       } catch (error) {
-
         console.error(error);
-
       } finally {
-
-        setLoading(false);
-
+        if (!cancelled) setLoading(false);
       }
-
     };
 
     fetchVenue();
 
+    return () => {
+      cancelled = true;
+    };
   }, [slug]);
 
-  useEffect(() => {
-
-    const fetchAvailability =
-      async () => {
-
-        try {
-
-          const response =
-            await getVenueAvailability(
-              slug,
-              selectedDate
-            );
-
-          console.log(
-            "Availability:",
-            response
-          );
-
-          setSlots(
-            response?.data || []
-          );
-
-        } catch (error) {
-
-          console.error(error);
-
-          setSlots([]);
-
-        }
-
-      };
-
-    if (
-      slug &&
-      selectedDate
-    ) {
-      fetchAvailability();
-    }
-
-  }, [
-    slug,
-    selectedDate,
-  ]);
-
-  if (
-    loading ||
-    !venue
-  ) {
+  if (loading || !venue) {
     return (
-      <div className="p-20">
-        Loading...
-      </div>
+      <section className="mx-auto max-w-7xl px-5 py-10">
+        <div className="grid grid-cols-1 items-start gap-10 lg:grid-cols-[minmax(0,1fr)_400px]">
+          <div className="space-y-16">
+            <GallerySkeleton />
+            <DescriptionSkeleton />
+            <AmenitiesSkeleton />
+            <PoliciesSkeleton />
+            <ReviewsSkeleton />
+            <MapSkeleton />
+          </div>
+
+          <BookingCardSkeleton />
+        </div>
+      </section>
     );
   }
 
   return (
-    <section
-      className="
-        max-w-7xl
-        mx-auto
-        px-5
-        py-10
-      "
-    >
+    <section className="mx-auto max-w-7xl px-5 py-10">
+      <div className="grid grid-cols-1 items-start gap-10 lg:grid-cols-[minmax(0,1fr)_400px]">
+        <div className="space-y-16">
+          <VenueGallery images={venue.images} />
 
-      <div
-        className="
-          grid
-          lg:grid-cols-[1fr_380px]
-          gap-10
-          items-start
-        "
-      >
+          <VenueInfo venue={venue} />
 
-        <div>
+          <VenueDescription description={venue.description} />
 
-          <VenueGallery
-            images={
-              venue.images
-            }
-          />
+          <AmenitiesSection amenities={venue.amenities} />
 
-          <VenueInfo
-            venue={venue}
-          />
+          <ThingsToKnowSection policies={venue.policies} />
 
-          <VenueAmenities
-            amenities={
-              venue.amenities
-            }
-          />
+          <ReviewsSection reviews={venue.reviews} />
 
+          <MapSection venue={venue} />
+
+          <LazySection fallback={<div className="h-40" />}>
+            <NearbySection />
+          </LazySection>
+
+          <LazySection fallback={<RelatedVenuesSkeleton />}>
+            <RelatedVenueCarousel venue={venue} />
+          </LazySection>
+
+          <LazySection fallback={<div className="h-40" />}>
+            <WhyBookSection />
+          </LazySection>
+
+          <LazySection fallback={<div className="h-40" />}>
+            <HostedEventsGallery images={venue.images} />
+          </LazySection>
+
+          <LazySection fallback={<div className="h-40" />}>
+            <FAQSection />
+          </LazySection>
+
+          <LazySection fallback={<div className="h-40" />}>
+            <ContactVenueCard />
+          </LazySection>
         </div>
 
-        <VenueBookingCard
-          venue={venue}
-          slots={slots}
-          selectedDate={
-            selectedDate
-          }
-          setSelectedDate={
-            setSelectedDate
-          }
-        />
-
+        <BookingCard venue={venue} />
       </div>
-
     </section>
   );
 };
