@@ -15,9 +15,6 @@ const readDraft = (searchParams) => ({
   guests: searchParams.get("guests") || "",
 });
 
-// Single component used for both desktop and mobile: a trigger button plus
-// a portal-rendered bottom-sheet (full-width sheet on mobile, a centered
-// bottom-anchored modal on larger screens).
 const VenueFilters = () => {
   const [searchParams, setSearchParams] = useSearchParams();
 
@@ -118,9 +115,11 @@ const VenueFilters = () => {
 
       {createPortal(
         <div
-          className={`fixed inset-0 z-9999 ${
-            isOpen ? "" : "pointer-events-none"
-          }`}
+          className={`
+            fixed inset-0 z-9999
+            flex items-end justify-center sm:items-center sm:p-6
+            ${isOpen ? "" : "pointer-events-none"}
+          `}
         >
           <div
             onClick={() => setIsOpen(false)}
@@ -136,15 +135,15 @@ const VenueFilters = () => {
             aria-modal="true"
             aria-label="Filter venues"
             className={`
-              absolute inset-x-0 bottom-0 mx-auto flex w-full max-w-2xl
+              relative flex w-full max-w-2xl
               max-h-[85vh] flex-col overflow-hidden
               rounded-t-3xl bg-white shadow-2xl
-              sm:bottom-6 sm:rounded-3xl
+              sm:rounded-3xl
               transition-[transform,opacity] duration-200 ease-out
               ${
                 isOpen
                   ? "translate-y-0 opacity-100"
-                  : "pointer-events-none translate-y-full opacity-0"
+                  : "pointer-events-none translate-y-full opacity-0 sm:translate-y-6"
               }
             `}
           >

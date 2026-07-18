@@ -99,8 +99,16 @@ const VenueListPage = () => {
   }, [searchParams, setSearchParams]);
 
   return (
-        <section
+        <section className="relative overflow-hidden">
+
+        <div className="pointer-events-none absolute inset-0">
+          <div className="absolute -top-32 -left-24 h-96 w-96 rounded-full bg-red-100/40 blur-[100px]" />
+          <div className="absolute top-24 -right-24 h-104 w-104 rounded-full bg-red-50/70 blur-[120px]" />
+        </div>
+
+        <div
         className="
+            relative
             max-w-7xl
             mx-auto
             px-5
@@ -200,6 +208,7 @@ const VenueListPage = () => {
             }
         />
 
+        </div>
         </section>
   );
 };
