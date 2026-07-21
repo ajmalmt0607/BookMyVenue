@@ -1,20 +1,6 @@
-import { useEffect } from "react";
+import { useCallback, useEffect } from "react";
 import { useBlocker } from "react-router-dom";
-
-// Guards the Payment page while a reservation is actively held: blocks
-// in-app navigation (Back button, link clicks) with a real confirmation
-// dialog via React Router's useBlocker (requires the data router), and
-// warns on tab close/refresh via the native beforeunload prompt. The
-// browser's beforeunload text is generic and can't be customized - that
-// is a platform restriction, not a gap here.
-//
-// Takes a ref (not a plain boolean) deliberately: the auto-redirect that
-// fires when the countdown hits zero calls navigate() synchronously,
-// before React has re-rendered with the new "expired" state, so a
-// closure over a boolean would still see the stale "should block" value
-// at that exact moment and could wrongly intercept its own redirect. A
-// ref's `.current` is always read fresh regardless of render timing.
-const useLeaveConfirmation = (shouldBlockRef) => {
+const useLeaveConfirmation = (shouldBlockRef, onConfirmedLeave) => {
   const blocker = useBlocker(
     ({ currentLocation, nextLocation }) =>
       shouldBlockRef.current &&
@@ -29,13 +15,27 @@ const useLeaveConfirmation = (shouldBlockRef) => {
       event.returnValue = "";
     };
 
+    const handlePageHide = () => {
+      if (!shouldBlockRef.current) return;
+
+      onConfirmedLeave?.();
+    };
+
     window.addEventListener("beforeunload", handleBeforeUnload);
+    window.addEventListener("pagehide", handlePageHide);
 
-    return () =>
+    return () => {
       window.removeEventListener("beforeunload", handleBeforeUnload);
-  }, [shouldBlockRef]);
+      window.removeEventListener("pagehide", handlePageHide);
+    };
+  }, [shouldBlockRef, onConfirmedLeave]);
 
-  return blocker;
+  const proceed = useCallback(() => {
+    onConfirmedLeave?.();
+    blocker.proceed?.();
+  }, [blocker, onConfirmedLeave]);
+
+  return { ...blocker, proceed };
 };
 
 export default useLeaveConfirmation;

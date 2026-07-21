@@ -193,3 +193,36 @@ class BookingService:
         )
 
         return booking
+
+    @staticmethod
+    @transaction.atomic
+    def cancel_reservation(booking):
+
+        locked_booking = (
+            Booking.objects
+            .select_for_update()
+            .select_related("venue")
+            .filter(
+                id=booking.id,
+                status=Booking.Status.RESERVED,
+            )
+            .first()
+        )
+
+        if not locked_booking:
+            return None
+
+        locked_booking.status = Booking.Status.CANCELLED
+
+        locked_booking.save(
+            update_fields=[
+                "status",
+            ]
+        )
+
+        AvailabilityService.invalidate_cache(
+            locked_booking.venue,
+            locked_booking.booking_date,
+        )
+
+        return locked_booking

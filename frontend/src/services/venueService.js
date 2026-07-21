@@ -1,4 +1,5 @@
 import api from "../api/axios";
+import { getAccessToken } from "../utils/tokenStorage";
 
 export const getVenues = async (params = {}) => {
   const response = await api.get(
@@ -98,5 +99,28 @@ export const confirmPaymentStatus = async (
     );
 
   return response.data;
+
+};
+
+// Releases a held reservation the moment the customer backs out of the
+// Payment page. Uses `fetch(..., { keepalive: true })` rather than the
+// shared axios instance: axios's XHR adapter has no keepalive support,
+// so a request fired from a `pagehide` handler during tab close/refresh
+// would otherwise be aborted before the browser sends it.
+export const cancelBooking = (bookingId) => {
+
+  const token = getAccessToken();
+
+  return fetch(
+    `${import.meta.env.VITE_API_BASE_URL}/venues/bookings/${bookingId}/cancel/`,
+    {
+      method: "POST",
+      keepalive: true,
+      headers: {
+        "Content-Type": "application/json",
+        ...(token && { Authorization: `Bearer ${token}` }),
+      },
+    }
+  );
 
 };

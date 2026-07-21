@@ -493,6 +493,27 @@ class BookingDetailAPIView(APIView):
         return Response(serializer.data)
     
 
+class CancelBookingAPIView(APIView):
+
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, pk):
+
+        booking = get_object_or_404(
+            Booking,
+            id=pk,
+            customer=request.user,
+        )
+
+        BookingService.cancel_reservation(
+            booking
+        )
+
+        return Response(
+            status=status.HTTP_204_NO_CONTENT
+        )
+
+
 class InitiatePaymentAPIView(APIView):
     """
     Idempotent "restore" of the booking's Stripe PaymentIntent. The

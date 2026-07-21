@@ -36,6 +36,7 @@ import useLeaveConfirmation from "../../hooks/useLeaveConfirmation";
 import { getStripe } from "../../utils/stripe";
 
 import {
+  cancelBooking,
   getBookingSummary,
 } from "../../services/venueService";
 
@@ -162,7 +163,16 @@ const PaymentPage = () => {
 
   shouldGuardLeaveRef.current = shouldGuardLeave;
 
-  const blocker = useLeaveConfirmation(shouldGuardLeaveRef);
+  const handleConfirmedLeave = useCallback(() => {
+    // Best-effort: releases the held slot immediately instead of leaving
+    // it blocked for other customers until the background expiry sweep
+    // catches up to reserved_until. Not awaited - the caller is either
+    // about to unload the document (pagehide) or navigate away in-app,
+    // neither of which should be delayed by this call.
+    cancelBooking(bookingId);
+  }, [bookingId]);
+
+  const blocker = useLeaveConfirmation(shouldGuardLeaveRef, handleConfirmedLeave);
 
   if (loading) {
 
@@ -374,7 +384,7 @@ const PaymentPage = () => {
               "
             >
               <ArrowLeft size={16} className="mt-0.5 flex-shrink-0 text-gray-500" />
-              <span>Leaving this page doesn't cancel your held reservation.</span>
+              <span>Leaving this page releases your held slot right away.</span>
             </div>
 
           </div>

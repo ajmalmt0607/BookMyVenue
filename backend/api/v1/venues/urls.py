@@ -1,6 +1,6 @@
 from django.urls import path
 
-from api.v1.venues.views import BookingDetailAPIView, BookingQuoteAPIView, ConfirmBookingAPIView, ConfirmPaymentAPIView, InitiatePaymentAPIView, LocationSearchAPIView, StripeWebhookAPIView, VenueAvailabilityAPIView, VenueDetailAPIView, VenueListAPIView, VenueReviewListAPIView
+from api.v1.venues.views import BookingDetailAPIView, BookingQuoteAPIView, CancelBookingAPIView, ConfirmBookingAPIView, ConfirmPaymentAPIView, InitiatePaymentAPIView, LocationSearchAPIView, StripeWebhookAPIView, VenueAvailabilityAPIView, VenueDetailAPIView, VenueListAPIView, VenueReviewListAPIView
 
 
 
@@ -42,6 +42,11 @@ urlpatterns = [
     path(
         "bookings/<uuid:pk>/",
         BookingDetailAPIView.as_view(),
+    ),
+
+    path(
+        "bookings/<uuid:pk>/cancel/",
+        CancelBookingAPIView.as_view(),
     ),
 
     path(
