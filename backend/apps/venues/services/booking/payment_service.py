@@ -3,6 +3,7 @@ import logging
 import stripe
 from django.conf import settings
 from django.db import transaction
+from django.utils import timezone
 
 from apps.venues.models import Booking
 from apps.venues.models import Payment
@@ -48,6 +49,7 @@ class PaymentService:
             )
 
             if intent.status != "canceled":
+                PaymentService._mark_payment_started(booking)
                 return payment, intent
 
         intent = stripe.PaymentIntent.create(
@@ -67,7 +69,26 @@ class PaymentService:
             ]
         )
 
+        PaymentService._mark_payment_started(booking)
+
         return payment, intent
+
+    @staticmethod
+    def _mark_payment_started(
+        booking,
+    ):
+        # First-time-only: a page refresh that re-fetches the same
+        # intent must not reset when payment was first initiated.
+        if booking.payment_started_at:
+            return
+
+        booking.payment_started_at = timezone.now()
+
+        booking.save(
+            update_fields=[
+                "payment_started_at",
+            ]
+        )
 
     @staticmethod
     def mark_success(

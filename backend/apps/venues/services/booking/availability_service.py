@@ -1,5 +1,6 @@
 from datetime import date
 
+from django.core.cache import cache
 from django.db.models import Exists
 from django.db.models import OuterRef
 from django.utils import timezone
@@ -8,6 +9,11 @@ from apps.venues.models import Booking
 from apps.venues.models import BookingSlot
 from apps.venues.models import Venue
 from apps.venues.models import VenueTimeSlot
+
+
+def availability_cache_key(venue: Venue, booking_date: date) -> str:
+
+    return f"availability:{venue.slug}:{booking_date}"
 
 
 class AvailabilityService:
@@ -21,10 +27,7 @@ class AvailabilityService:
         booked_slots = BookingSlot.objects.filter(
             slot=OuterRef("pk"),
             booking__booking_date=booking_date,
-            booking__status__in=[
-                Booking.Status.RESERVED,
-                Booking.Status.CONFIRMED,
-            ],
+            booking__status__in=Booking.ACTIVE_HOLD_STATUSES,
         )
 
         queryset = (
@@ -51,7 +54,14 @@ class AvailabilityService:
             current_time = timezone.localtime().time()
 
             queryset = queryset.filter(
-                end_time__gt=current_time
+                start_time__gt=current_time
             )
 
         return queryset
+
+    @staticmethod
+    def invalidate_cache(venue: Venue, booking_date: date):
+
+        cache.delete(
+            availability_cache_key(venue, booking_date)
+        )

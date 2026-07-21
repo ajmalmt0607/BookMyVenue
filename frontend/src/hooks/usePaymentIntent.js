@@ -4,7 +4,7 @@ import {
 } from "react";
 
 import {
-  initiatePayment,
+  getPaymentIntent,
 } from "../services/venueService";
 
 const usePaymentIntent = (
@@ -39,7 +39,7 @@ const usePaymentIntent = (
         setError(false);
 
         const response =
-          await initiatePayment(
+          await getPaymentIntent(
             bookingId
           );
 

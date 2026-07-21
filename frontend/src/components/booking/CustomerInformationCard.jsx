@@ -1,5 +1,8 @@
 import {
+  CalendarClock,
   FileText,
+  Mail,
+  MessageSquare,
   Phone,
   User,
 } from "lucide-react";
@@ -96,6 +99,12 @@ const CustomerInformationCard = ({
         />
 
         <Field
+          icon={Mail}
+          label="Email"
+          value={booking.email}
+        />
+
+        <Field
           icon={Phone}
           label="Phone Number"
           value={booking.phone_number}
@@ -155,6 +164,102 @@ const CustomerInformationCard = ({
               "
             >
               {booking.special_requirements}
+            </p>
+
+          </div>
+
+        </div>
+
+      )}
+
+      {booking.arrival_notes && (
+
+        <div
+          className="
+            border-t
+            mt-6
+            pt-6
+            flex
+            items-start
+            gap-3
+          "
+        >
+
+          <CalendarClock
+            size={18}
+            className="
+              text-gray-400
+              mt-0.5
+            "
+          />
+
+          <div>
+
+            <p
+              className="
+                text-xs
+                text-gray-500
+              "
+            >
+              Arrival Notes
+            </p>
+
+            <p
+              className="
+                font-medium
+                mt-1
+                text-gray-700
+              "
+            >
+              {booking.arrival_notes}
+            </p>
+
+          </div>
+
+        </div>
+
+      )}
+
+      {booking.event_notes && (
+
+        <div
+          className="
+            border-t
+            mt-6
+            pt-6
+            flex
+            items-start
+            gap-3
+          "
+        >
+
+          <MessageSquare
+            size={18}
+            className="
+              text-gray-400
+              mt-0.5
+            "
+          />
+
+          <div>
+
+            <p
+              className="
+                text-xs
+                text-gray-500
+              "
+            >
+              Event Notes
+            </p>
+
+            <p
+              className="
+                font-medium
+                mt-1
+                text-gray-700
+              "
+            >
+              {booking.event_notes}
             </p>
 
           </div>

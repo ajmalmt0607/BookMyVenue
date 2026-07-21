@@ -8,7 +8,7 @@ class PricingService:
     GST_PERCENTAGE = Decimal("18")
 
     @classmethod
-    def calculate(cls, venue_amount):
+    def calculate(cls, venue_amount, discount_amount=Decimal("0")):
 
         platform_fee = cls.PLATFORM_FEE
 
@@ -24,11 +24,13 @@ class PricingService:
             venue_amount
             + platform_fee
             + gst_amount
+            - discount_amount
         )
 
         return {
             "venue_amount": venue_amount,
             "platform_fee": platform_fee,
             "gst_amount": gst_amount,
+            "discount_amount": discount_amount,
             "total_amount": total_amount,
         }

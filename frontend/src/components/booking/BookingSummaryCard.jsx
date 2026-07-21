@@ -3,15 +3,22 @@ import {
   Clock3,
   Building2,
   MapPin,
+  Star,
+  Users,
 } from "lucide-react";
 
-const CustomerDetailsSidebar = ({
+const BookingSummaryCard = ({
   booking,
   badge,
   footerNote,
+  note,
+  showTimer = false,
+  timerSlot,
 }) => {
 
   if (!booking) return null;
+
+  const discount = Number(booking.discount_amount || 0);
 
   return (
     <div
@@ -93,16 +100,52 @@ const CustomerDetailsSidebar = ({
             "
           >
 
-            <h4
+            <div
               className="
-                text-lg
-                font-bold
-                leading-snug
-                line-clamp-2
+                flex
+                items-start
+                justify-between
+                gap-2
               "
             >
-              {booking.venue_name}
-            </h4>
+
+              <h4
+                className="
+                  text-lg
+                  font-bold
+                  leading-snug
+                  line-clamp-2
+                "
+              >
+                {booking.venue_name}
+              </h4>
+
+              {Number(booking.rating) > 0 && (
+
+                <span
+                  className="
+                    flex
+                    items-center
+                    gap-1
+                    flex-shrink-0
+                    text-sm
+                    font-semibold
+                    text-gray-700
+                  "
+                >
+                  <Star
+                    size={14}
+                    className="
+                      fill-amber-400
+                      text-amber-400
+                    "
+                  />
+                  {Number(booking.rating).toFixed(1)}
+                </span>
+
+              )}
+
+            </div>
 
             <div
               className="
@@ -203,6 +246,57 @@ const CustomerDetailsSidebar = ({
             </span>
 
           </div>
+
+          {/* Guests */}
+
+          {booking.guest_count && (
+
+            <div
+              className="
+                flex
+                justify-between
+                items-center
+                gap-4
+              "
+            >
+
+              <div
+                className="
+                  flex
+                  items-center
+                  gap-3
+                "
+              >
+
+                <Users
+                  size={17}
+                  className="
+                    text-gray-500
+                  "
+                />
+
+                <span
+                  className="
+                    text-gray-600
+                  "
+                >
+                  Guests
+                </span>
+
+              </div>
+
+              <span
+                className="
+                  text-sm
+                  font-medium
+                "
+              >
+                {booking.guest_count}
+              </span>
+
+            </div>
+
+          )}
 
           {/* Time Slots */}
 
@@ -405,7 +499,52 @@ const CustomerDetailsSidebar = ({
 
           </div>
 
+          {discount > 0 && (
+
+            <div
+              className="
+                flex
+                justify-between
+                text-sm
+                text-green-600
+              "
+            >
+
+              <span>
+                Discount
+              </span>
+
+              <span
+                className="
+                  font-semibold
+                "
+              >
+                -₹
+                {discount.toLocaleString()}
+              </span>
+
+            </div>
+
+          )}
+
         </div>
+
+        {note && (
+
+          <p
+            className="
+              text-xs
+              text-gray-400
+              mt-6
+              pt-4
+              border-t
+              border-gray-100
+            "
+          >
+            {note}
+          </p>
+
+        )}
 
       </div>
 
@@ -447,6 +586,8 @@ const CustomerDetailsSidebar = ({
 
       </div>
 
+      {showTimer && timerSlot}
+
       {footerNote}
 
     </div>
@@ -454,4 +595,4 @@ const CustomerDetailsSidebar = ({
 
 };
 
-export default CustomerDetailsSidebar;
+export default BookingSummaryCard;

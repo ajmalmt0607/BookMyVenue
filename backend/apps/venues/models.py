@@ -136,18 +136,28 @@ class Booking(BaseModel):
         CANCELLED = "CANCELLED", "Cancelled"
         EXPIRED = "EXPIRED", "Expired"
 
+    ACTIVE_HOLD_STATUSES = [Status.RESERVED, Status.CONFIRMED]
+
     venue = models.ForeignKey(Venue, on_delete=models.CASCADE, related_name="bookings")
     customer = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="bookings")
     full_name = models.CharField(max_length=255, blank=True)
+    email = models.EmailField(blank=True)
     phone_number = models.CharField(max_length=20, blank=True)
     alternate_phone_number = models.CharField(max_length=20, blank=True, null=True)
     special_requirements = models.TextField(blank=True, null=True)
+    arrival_notes = models.TextField(blank=True, null=True)
+    event_notes = models.TextField(blank=True, null=True)
+    guest_count = models.PositiveIntegerField(default=1)
     booking_date = models.DateField()
     venue_amount = models.DecimalField(max_digits=12, decimal_places=2)
+    discount_amount = models.DecimalField(max_digits=12, decimal_places=2, default=0)
     total_amount = models.DecimalField(max_digits=12, decimal_places=2)
     status = models.CharField(max_length=20, choices=Status.choices, default=Status.RESERVED)
     notes = models.TextField(blank=True, null=True)
     reserved_until = models.DateTimeField(blank=True, null=True)
+    terms_accepted_at = models.DateTimeField(blank=True, null=True)
+    payment_started_at = models.DateTimeField(blank=True, null=True)
+    payment_completed_at = models.DateTimeField(blank=True, null=True)
     platform_fee = models.DecimalField(max_digits=12, decimal_places=2, default=0)
     gst_amount = models.DecimalField(max_digits=12, decimal_places=2, default=0)
 
@@ -159,8 +169,7 @@ class Booking(BaseModel):
 
         indexes = [
             models.Index(fields=["booking_date"]),
-            models.Index(fields=["status"]),
-            models.Index(fields=["reserved_until"]),
+            models.Index(fields=["status", "reserved_until"]),
         ]
 
     def __str__(self):

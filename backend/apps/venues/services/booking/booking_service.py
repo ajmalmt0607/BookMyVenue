@@ -1,5 +1,6 @@
 from datetime import timedelta
 
+from django.conf import settings
 from django.db import transaction
 from django.utils import timezone
 
@@ -7,12 +8,17 @@ from apps.venues.models import Booking
 from apps.venues.models import BookingSlot
 from apps.venues.models import Venue
 from apps.venues.models import VenueTimeSlot
+from apps.venues.services.booking.availability_service import AvailabilityService
 from apps.venues.services.booking.pricing_service import PricingService
 
 
-class BookingService:
+class SlotUnavailableError(Exception):
+    """Raised when one or more requested slots were booked by someone
+    else between the client reading availability and this reservation
+    being created."""
 
-    RESERVATION_MINUTES = 10
+
+class BookingService:
 
     @classmethod
     @transaction.atomic
@@ -23,17 +29,46 @@ class BookingService:
         venue: Venue,
         booking_date,
         slot_ids,
+        guest_count,
+        full_name,
+        email,
+        phone_number,
+        alternate_phone_number="",
+        special_requirements="",
+        arrival_notes="",
+        event_notes="",
+        terms_accepted=False,
     ):
 
-        slots = VenueTimeSlot.objects.filter(
-            id__in=slot_ids,
-            venue=venue,
-            is_active=True,
+        # Lock the specific slot rows being requested (not the whole
+        # Venue) so concurrent reservations for *different* slots of the
+        # same venue/date don't serialize against each other.
+        slots = list(
+            VenueTimeSlot.objects.select_for_update().filter(
+                id__in=slot_ids,
+                venue=venue,
+                is_active=True,
+            )
         )
 
-        if not slots.exists():
+        if len(slots) != len(set(slot_ids)):
             raise ValueError(
                 "No valid slots selected."
+            )
+
+        # Re-check under the lock: any concurrent create_reservation()
+        # call for the same slot+date has either already committed
+        # (visible here) or is blocked behind the select_for_update
+        # above until it commits/rolls back.
+        conflict_exists = BookingSlot.objects.filter(
+            slot_id__in=[slot.id for slot in slots],
+            booking__booking_date=booking_date,
+            booking__status__in=Booking.ACTIVE_HOLD_STATUSES,
+        ).exists()
+
+        if conflict_exists:
+            raise SlotUnavailableError(
+                "One or more selected slots were just booked. Please choose another."
             )
 
         venue_amount = sum(
@@ -50,17 +85,32 @@ class BookingService:
             venue=venue,
             booking_date=booking_date,
 
+            full_name=full_name,
+            email=email,
+            phone_number=phone_number,
+            alternate_phone_number=alternate_phone_number,
+            special_requirements=special_requirements,
+            arrival_notes=arrival_notes,
+            event_notes=event_notes,
+            guest_count=guest_count,
+
             venue_amount=price["venue_amount"],
 
             platform_fee=price["platform_fee"],
 
             gst_amount=price["gst_amount"],
 
+            discount_amount=price["discount_amount"],
+
             total_amount=price["total_amount"],
 
-            reserved_until=timezone.now() + timedelta(minutes=10),
+            reserved_until=timezone.now() + timedelta(
+                minutes=settings.RESERVATION_TIMEOUT_MINUTES
+            ),
 
             status=Booking.Status.RESERVED,
+
+            terms_accepted_at=timezone.now() if terms_accepted else None,
         )
 
         booking_slots = [
@@ -109,11 +159,19 @@ class BookingService:
 
         booking.reserved_until = None
 
+        booking.payment_completed_at = timezone.now()
+
         booking.save(
             update_fields=[
                 "status",
                 "reserved_until",
+                "payment_completed_at",
             ]
+        )
+
+        AvailabilityService.invalidate_cache(
+            booking.venue,
+            booking.booking_date,
         )
 
         return booking
@@ -129,35 +187,9 @@ class BookingService:
             ]
         )
 
-        return booking
-
-    @staticmethod
-    def update_customer_details(
-        booking,
-        validated_data,
-    ):
-
-        booking.full_name = validated_data["full_name"]
-
-        booking.phone_number = validated_data["phone_number"]
-
-        booking.alternate_phone_number = validated_data.get(
-            "alternate_phone_number",
-            "",
-        )
-
-        booking.special_requirements = validated_data.get(
-            "special_requirements",
-            "",
-        )
-
-        booking.save(
-            update_fields=[
-                "full_name",
-                "phone_number",
-                "alternate_phone_number",
-                "special_requirements",
-            ]
+        AvailabilityService.invalidate_cache(
+            booking.venue,
+            booking.booking_date,
         )
 
         return booking

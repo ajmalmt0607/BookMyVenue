@@ -36,10 +36,28 @@ export const getVenueAvailability =
     return response.data;
 };
 
-export const reserveBooking = async (data) => {
+export const getBookingQuote = async (
+  venueId,
+  slotIds
+) => {
+
+  const response = await api.get(
+    "/venues/bookings/quote/",
+    {
+      params: {
+        venue_id: venueId,
+        slot_ids: slotIds.join(","),
+      },
+    }
+  );
+
+  return response.data;
+};
+
+export const confirmBooking = async (data) => {
 
   const response = await api.post(
-    "/venues/bookings/reserve/",
+    "/venues/bookings/confirm/",
     data
   );
 
@@ -57,28 +75,13 @@ export const getBookingSummary = async (
   return response.data;
 };
 
-export const updateCustomerDetails = async (
-  bookingId,
-  data
-) => {
-
-  const response =
-    await api.patch(
-      `/venues/bookings/${bookingId}/customer-details/`,
-      data
-    );
-
-  return response.data;
-
-};
-
-export const initiatePayment = async (
+export const getPaymentIntent = async (
   bookingId
 ) => {
 
   const response =
     await api.post(
-      `/venues/bookings/${bookingId}/payment/initiate/`
+      `/venues/bookings/${bookingId}/payment/intent/`
     );
 
   return response.data;

@@ -1,28 +1,32 @@
 from datetime import datetime
 import logging
+import uuid
 import stripe
-from apps.venues.services.booking.booking_service import BookingService
+from apps.venues.services.booking.availability_service import AvailabilityService, availability_cache_key
+from apps.venues.services.booking.booking_service import BookingService, SlotUnavailableError
 from apps.venues.services.booking.payment_service import PaymentService
+from apps.venues.services.booking.pricing_service import PricingService
 from rest_framework import status
 from api.v1.venues.filters import VenueFilter
 from rest_framework.filters import (
     OrderingFilter,
     SearchFilter,
 )
-from apps.venues.models import Booking, BookingSlot, Venue, VenuePolicy, VenueTimeSlot
+from apps.venues.models import Booking, Venue, VenuePolicy, VenueTimeSlot
 from apps.common.pagination import StandardPagination
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import generics
-from .serializers import AvailableSlotSerializer, BookingDetailSerializer, ReserveBookingSerializer, ReviewSerializer, UpdateBookingCustomerSerializer, VenueDetailSerializer, VenueListSerializer
+from .serializers import AvailableSlotSerializer, BookingDetailSerializer, ConfirmBookingSerializer, ReviewSerializer, VenueDetailSerializer, VenueListSerializer
 from rest_framework.generics import ListAPIView, RetrieveAPIView
 from rest_framework.permissions import AllowAny
 from rest_framework.permissions import IsAuthenticated
 
 from datetime import date
 from django.conf import settings
-from django.db.models import Exists, OuterRef, Prefetch
+from django.core.cache import cache
+from django.db.models import Prefetch
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from django.utils.decorators import method_decorator
@@ -208,51 +212,32 @@ class VenueAvailabilityAPIView(APIView):
             is_active=True,
         )
 
-        booked_slots_subquery = (
-            BookingSlot.objects.filter(
-                slot=OuterRef("pk"),
-                booking__booking_date=selected_date,
-                booking__status=Booking.Status.CONFIRMED,
-            )
+        cache_key = availability_cache_key(
+            venue,
+            selected_date,
         )
 
-        slots = (
-            VenueTimeSlot.objects
-            .filter(
-                venue=venue,
-                is_active=True,
-            )
-            .annotate(
-                is_booked=Exists(
-                    booked_slots_subquery
-                )
-            )
-            .filter(
-                is_booked=False
-            )
-            .order_by(
-                "start_time"
-            )
-        )
+        data = cache.get(cache_key)
 
-        if selected_date == today:
+        if data is None:
 
-            current_time = timezone.localtime().time()
-
-            slots = slots.filter(
-                start_time__gt=current_time
+            slots = AvailabilityService.get_available_slots(
+                venue,
+                selected_date,
             )
 
-        serializer = AvailableSlotSerializer(
-            slots,
-            many=True,
-        )
+            data = AvailableSlotSerializer(
+                slots,
+                many=True,
+            ).data
+
+            cache.set(cache_key, data)
 
         return Response(
             {
                 "success": True,
                 "message": "Available slots fetched successfully.",
-                "data": serializer.data,
+                "data": data,
             },
             status=status.HTTP_200_OK,
         )
@@ -294,13 +279,108 @@ class VenueReviewListAPIView(APIView):
         )
 
 
-class ReserveBookingAPIView(APIView):
+class BookingQuoteAPIView(APIView):
+    """
+    Read-only price preview for the Booking Details page, used before any
+    reservation exists. Reuses PricingService rather than duplicating its
+    fee/GST formula in the frontend - if the platform fee or GST rate
+    ever changes, this is the only place it needs to change.
+    """
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+
+        venue_id = request.GET.get("venue_id")
+
+        slot_ids = [
+            slot_id
+            for slot_id in request.GET.get("slot_ids", "").split(",")
+            if slot_id
+        ]
+
+        if not venue_id or not slot_ids:
+            return Response(
+                {
+                    "success": False,
+                    "message": "venue_id and slot_ids are required.",
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        try:
+            uuid.UUID(venue_id)
+            slot_ids = [str(uuid.UUID(slot_id)) for slot_id in slot_ids]
+
+        except ValueError:
+            return Response(
+                {
+                    "success": False,
+                    "message": "Invalid venue_id or slot_ids.",
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        venue = get_object_or_404(
+            Venue,
+            id=venue_id,
+            status=Venue.Status.APPROVED,
+            is_active=True,
+        )
+
+        slots = VenueTimeSlot.objects.filter(
+            id__in=slot_ids,
+            venue=venue,
+            is_active=True,
+        )
+
+        if not slots.exists():
+            return Response(
+                {
+                    "success": False,
+                    "message": "No valid slots selected.",
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        venue_amount = sum(
+            slot.price
+            for slot in slots
+        )
+
+        price = PricingService.calculate(
+            venue_amount
+        )
+
+        return Response(
+            {
+                "success": True,
+                "message": "Quote calculated successfully.",
+                "data": {
+                    "slots": AvailableSlotSerializer(
+                        slots,
+                        many=True,
+                    ).data,
+                    **price,
+                },
+            }
+        )
+
+
+class ConfirmBookingAPIView(APIView):
+    """
+    The commitment point of the booking flow: creates the reservation
+    (with guest details captured in the same write) and the Stripe
+    PaymentIntent atomically. Nothing before this call touches the
+    database - venue/date/slot/guest selection up to here lives entirely
+    client-side.
+    """
 
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
 
-        serializer = ReserveBookingSerializer(
+        serializer = ConfirmBookingSerializer(
             data=request.data
         )
 
@@ -308,29 +388,81 @@ class ReserveBookingAPIView(APIView):
             raise_exception=True
         )
 
+        data = serializer.validated_data
+
         venue = get_object_or_404(
             Venue,
-            id=serializer.validated_data["venue_id"],
+            id=data["venue_id"],
             status=Venue.Status.APPROVED,
             is_active=True,
         )
 
-        booking = (
-            BookingService.create_reservation(
+        if not (venue.min_capacity <= data["guest_count"] <= venue.max_capacity):
+            return Response(
+                {
+                    "message": (
+                        f"Guest count must be between {venue.min_capacity} "
+                        f"and {venue.max_capacity} for this venue."
+                    )
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        try:
+            booking = BookingService.create_reservation(
                 customer=request.user,
                 venue=venue,
-                booking_date=serializer.validated_data["booking_date"],
-                slot_ids=serializer.validated_data["slot_ids"],
+                booking_date=data["booking_date"],
+                slot_ids=data["slot_ids"],
+                guest_count=data["guest_count"],
+                full_name=data["full_name"],
+                email=data["email"],
+                phone_number=data["phone_number"],
+                alternate_phone_number=data.get("alternate_phone_number", ""),
+                special_requirements=data.get("special_requirements", ""),
+                arrival_notes=data.get("arrival_notes", ""),
+                event_notes=data.get("event_notes", ""),
+                terms_accepted=data["terms_accepted"],
             )
-        )
+
+        except SlotUnavailableError as exc:
+            return Response(
+                {
+                    "message": str(exc)
+                },
+                status=status.HTTP_409_CONFLICT,
+            )
+
+        except ValueError as exc:
+            return Response(
+                {
+                    "message": str(exc)
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        try:
+            payment, intent = PaymentService.create_payment_intent(
+                booking
+            )
+
+        except ValueError as exc:
+            return Response(
+                {
+                    "message": str(exc)
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
         return Response(
             {
                 "booking_id": booking.id,
                 "reserved_until": booking.reserved_until,
+                "client_secret": intent.client_secret,
+                "publishable_key": settings.STRIPE_PUBLISHABLE_KEY,
             }
         )
-    
+
 
 class BookingDetailAPIView(APIView):
 
@@ -361,76 +493,15 @@ class BookingDetailAPIView(APIView):
         return Response(serializer.data)
     
 
-class ValidateReservationAPIView(APIView):
-
-    permission_classes = [IsAuthenticated]
-
-    def post(self, request, pk):
-
-        booking = get_object_or_404(
-            Booking,
-            id=pk,
-            customer=request.user,
-        )
-
-        valid = (
-            BookingService.validate_reservation(
-                booking
-            )
-        )
-
-        return Response(
-            {
-                "valid": valid
-            }
-        )
-    
-
-class BookingCustomerDetailAPIView(APIView):
-
-    permission_classes = [IsAuthenticated]
-
-    def patch(self, request, pk):
-
-        booking = get_object_or_404(
-            Booking,
-            id=pk,
-            customer=request.user,
-            status=Booking.Status.RESERVED,
-        )
-
-        # Reservation validation
-        if not BookingService.validate_reservation(
-            booking
-        ):
-            return Response(
-                {
-                    "message": "Reservation has expired."
-                },
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
-        serializer = UpdateBookingCustomerSerializer(
-            data=request.data,
-        )
-
-        serializer.is_valid(
-            raise_exception=True,
-        )
-
-        BookingService.update_customer_details(
-            booking=booking,
-            validated_data=serializer.validated_data,
-        )
-
-        return Response(
-            {
-                "message": "Booking details updated successfully."
-            }
-        )
-
-
 class InitiatePaymentAPIView(APIView):
+    """
+    Idempotent "restore" of the booking's Stripe PaymentIntent. The
+    intent itself is created once, atomically, inside
+    ConfirmBookingAPIView - this endpoint exists only because Stripe
+    doesn't let a client_secret be re-read anywhere except the API (it
+    isn't persisted server-side), so the Payment page needs a way to
+    fetch it again on refresh/return without re-creating anything.
+    """
 
     permission_classes = [IsAuthenticated]
 

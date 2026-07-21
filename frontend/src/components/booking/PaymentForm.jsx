@@ -17,7 +17,6 @@ import {
 import PaymentCard from "./PaymentCard";
 import PaymentElementContainer from "./PaymentElementContainer";
 import PaymentSecurityCard from "./PaymentSecurityCard";
-import ReservationTimer from "./ReservationTimer";
 
 import {
   confirmPaymentStatus,
@@ -26,6 +25,7 @@ import {
 const PaymentForm = ({
   booking,
   bookingId,
+  isExpired,
   onBack,
   onSuccess,
 }) => {
@@ -180,12 +180,6 @@ const PaymentForm = ({
 
       <PaymentSecurityCard />
 
-      <ReservationTimer
-        reservedUntil={
-          booking.reserved_until
-        }
-      />
-
       {errorMessage && (
 
         <p
@@ -243,6 +237,7 @@ const PaymentForm = ({
           onClick={handlePay}
           disabled={
             processing ||
+            isExpired ||
             !stripe ||
             !elements
           }
@@ -257,7 +252,7 @@ const PaymentForm = ({
             transition-all
 
             ${
-              processing
+              processing || isExpired
                 ? `
                   bg-gray-300
                   text-gray-600

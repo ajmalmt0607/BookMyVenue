@@ -2,14 +2,14 @@ import {
   CheckCircle2,
 } from "lucide-react";
 
-import CustomerDetailsSidebar from "./CustomerDetailsSidebar";
+import BookingSummaryCard from "./BookingSummaryCard";
 
 const ConfirmationSidebar = ({
   booking,
 }) => {
 
   return (
-    <CustomerDetailsSidebar
+    <BookingSummaryCard
       booking={booking}
       badge={
 

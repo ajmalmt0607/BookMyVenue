@@ -331,7 +331,7 @@ class AvailableSlotSerializer(serializers.ModelSerializer):
         ]
 
 
-class ReserveBookingSerializer(serializers.Serializer):
+class ConfirmBookingSerializer(serializers.Serializer):
 
     venue_id = serializers.UUIDField()
 
@@ -341,6 +341,46 @@ class ReserveBookingSerializer(serializers.Serializer):
         child=serializers.UUIDField(),
         allow_empty=False,
     )
+
+    guest_count = serializers.IntegerField(min_value=1)
+
+    full_name = serializers.CharField(max_length=255)
+
+    email = serializers.EmailField()
+
+    phone_number = serializers.CharField(max_length=20)
+
+    alternate_phone_number = serializers.CharField(
+        max_length=20,
+        required=False,
+        allow_blank=True,
+    )
+
+    special_requirements = serializers.CharField(
+        required=False,
+        allow_blank=True,
+    )
+
+    arrival_notes = serializers.CharField(
+        required=False,
+        allow_blank=True,
+    )
+
+    event_notes = serializers.CharField(
+        required=False,
+        allow_blank=True,
+    )
+
+    terms_accepted = serializers.BooleanField()
+
+    def validate_terms_accepted(self, value):
+
+        if not value:
+            raise serializers.ValidationError(
+                "You must accept all terms to continue."
+            )
+
+        return value
 
 
 class BookingSlotSerializer(serializers.ModelSerializer):
@@ -393,6 +433,9 @@ class BookingDetailSerializer(
     venue_city = serializers.CharField(
         source="venue.city"
     )
+    venue_slug = serializers.CharField(
+        source="venue.slug"
+    )
 
     payment_status = serializers.SerializerMethodField()
 
@@ -403,23 +446,30 @@ class BookingDetailSerializer(
         fields = [
             "id",
             "full_name",
+            "email",
             "phone_number",
             "alternate_phone_number",
             "special_requirements",
+            "arrival_notes",
+            "event_notes",
+            "guest_count",
             "venue_name",
             "venue_primary_image",
             "venue_type",
             "venue_city",
+            "venue_slug",
             "booking_date",
             "venue_max_capacity",
             "rating",
             "venue_amount",
             "platform_fee",
             "gst_amount",
+            "discount_amount",
             "total_amount",
             "reserved_until",
             "status",
             "payment_status",
+            "terms_accepted_at",
             "slots",
         ]
 
@@ -456,25 +506,3 @@ class BookingDetailSerializer(
         return image.image.url
     
 
-class UpdateBookingCustomerSerializer(
-    serializers.Serializer
-):
-
-    full_name = serializers.CharField(
-        max_length=255
-    )
-
-    phone_number = serializers.CharField(
-        max_length=20
-    )
-
-    alternate_phone_number = serializers.CharField(
-        max_length=20,
-        required=False,
-        allow_blank=True,
-    )
-
-    special_requirements = serializers.CharField(
-        required=False,
-        allow_blank=True,
-    )

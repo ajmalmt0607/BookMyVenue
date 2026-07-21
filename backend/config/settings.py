@@ -225,10 +225,14 @@ CELERY_RESULT_BACKEND = env(
     default="redis://redis:6379/1",
 )
 
+# Booking reservation settings
+RESERVATION_TIMEOUT_MINUTES = env.int("RESERVATION_TIMEOUT_MINUTES", default=10)
+RESERVATION_SWEEP_INTERVAL_SECONDS = env.int("RESERVATION_SWEEP_INTERVAL_SECONDS", default=60)
+
 CELERY_BEAT_SCHEDULE = {
     "expire-booking-reservations": {
         "task": "apps.venues.tasks.expire_reservations",
-        "schedule": 60.0,  # every 60 seconds
+        "schedule": RESERVATION_SWEEP_INTERVAL_SECONDS,
     },
 }
 
@@ -238,6 +242,16 @@ CELERY_RESULT_SERIALIZER = "json"
 CELERY_TIMEZONE = TIME_ZONE
 CELERY_TASK_IGNORE_RESULT = env.bool("CELERY_TASK_IGNORE_RESULT", default=True)
 CELERY_TASK_TRACK_STARTED = True
+
+# Availability read-through cache - reservation state itself stays
+# Postgres-only; this only caches the hot pre-commit availability lookups.
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.redis.RedisCache",
+        "LOCATION": env("DJANGO_CACHE_URL", default="redis://redis:6379/2"),
+        "TIMEOUT": 12,
+    },
+}
 
 LOCATION_PROVIDER = env(
     "LOCATION_PROVIDER",

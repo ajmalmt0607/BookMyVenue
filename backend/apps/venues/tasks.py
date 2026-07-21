@@ -4,6 +4,7 @@ from django.db import transaction
 from django.utils import timezone
 
 from apps.venues.models import Booking
+from apps.venues.services.booking.booking_service import BookingService
 
 
 @shared_task
@@ -28,6 +29,7 @@ def expire_reservations():
             booking = (
                 Booking.objects
                 .select_for_update()
+                .select_related("venue")
                 .filter(
                     id=booking_id,
                     status=Booking.Status.RESERVED,
@@ -47,13 +49,7 @@ def expire_reservations():
             ):
                 continue
 
-            booking.status = Booking.Status.EXPIRED
-
-            booking.save(
-                update_fields=[
-                    "status",
-                ]
-            )
+            BookingService.expire_booking(booking)
 
             expired_count += 1
 

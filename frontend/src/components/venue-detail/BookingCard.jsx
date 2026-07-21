@@ -1,10 +1,11 @@
 import { memo, useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Calendar as CalendarIcon, Clock, Loader2 } from "lucide-react";
+import { Calendar as CalendarIcon, Clock, Loader2, Minus, Plus, Users } from "lucide-react";
 
 import BookingCalendar from "./BookingCalendar";
 import TimeSlotSelector from "./TimeSlotSelector";
-import { getVenueAvailability, reserveBooking } from "../../services/venueService";
+import Button from "../ui/Button";
+import { getVenueAvailability } from "../../services/venueService";
 import { formatDateValue, startOfDay } from "../../utils/calendarDate";
 
 const TABS = {
@@ -27,8 +28,7 @@ const BookingCard = ({ venue }) => {
   const [slots, setSlots] = useState([]);
   const [slotsLoading, setSlotsLoading] = useState(true);
   const [selectedSlots, setSelectedSlots] = useState([]);
-  const [isReserving, setIsReserving] = useState(false);
-  const [error, setError] = useState("");
+  const [guestCount, setGuestCount] = useState(venue.min_capacity || 1);
 
   useEffect(() => {
     let cancelled = false;
@@ -100,29 +100,35 @@ const BookingCard = ({ venue }) => {
     });
   }, [selectedDate]);
 
-  const canProceed = selectedSlots.length > 0 && !isReserving;
+  const minGuests = venue.min_capacity || 1;
+  const maxGuests = venue.max_capacity || minGuests;
 
-  const handleContinue = useCallback(async () => {
+  const handleDecrementGuests = useCallback(() => {
+    setGuestCount((prev) => Math.max(minGuests, prev - 1));
+  }, [minGuests]);
+
+  const handleIncrementGuests = useCallback(() => {
+    setGuestCount((prev) => Math.min(maxGuests, prev + 1));
+  }, [maxGuests]);
+
+  const canProceed = selectedSlots.length > 0;
+
+  // No reservation is created here - selection is carried entirely in
+  // the URL so the Booking Details page can be reviewed (and refreshed)
+  // without ever holding a slot. The reservation is only created when
+  // the user explicitly confirms on that page.
+  const handleContinue = useCallback(() => {
     if (selectedSlots.length === 0) return;
 
-    try {
-      setIsReserving(true);
-      setError("");
+    const params = new URLSearchParams({
+      venue: venue.slug,
+      date: selectedDate,
+      slots: selectedSlots.map((slot) => slot.id).join(","),
+      guests: String(guestCount),
+    });
 
-      const response = await reserveBooking({
-        venue_id: venue.id,
-        booking_date: selectedDate,
-        slot_ids: selectedSlots.map((slot) => slot.id),
-      });
-
-      navigate(`/booking-summary/${response.booking_id}`);
-    } catch (err) {
-      console.error(err);
-      setError("Something went wrong. Please try again.");
-    } finally {
-      setIsReserving(false);
-    }
-  }, [navigate, selectedDate, selectedSlots, venue.id]);
+    navigate(`/booking/confirm?${params.toString()}`);
+  }, [navigate, selectedDate, selectedSlots, guestCount, venue.slug]);
 
   return (
     <div
@@ -188,6 +194,49 @@ const BookingCard = ({ venue }) => {
         </button>
       </div>
 
+      <div className="flex items-center justify-between px-6 pt-5">
+        <div className="flex items-center gap-2 text-sm font-semibold text-gray-700">
+          <Users size={16} className="text-gray-400" />
+          Guests
+        </div>
+
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={handleDecrementGuests}
+            disabled={guestCount <= minGuests}
+            aria-label="Decrease guest count"
+            className="
+              flex h-8 w-8 items-center justify-center rounded-full
+              border border-gray-200 text-gray-600 transition-colors
+              disabled:cursor-not-allowed disabled:opacity-40
+              enabled:hover:border-red-600 enabled:hover:text-red-600
+            "
+          >
+            <Minus size={14} />
+          </button>
+
+          <span className="w-6 text-center text-sm font-semibold text-gray-900">
+            {guestCount}
+          </span>
+
+          <button
+            type="button"
+            onClick={handleIncrementGuests}
+            disabled={guestCount >= maxGuests}
+            aria-label="Increase guest count"
+            className="
+              flex h-8 w-8 items-center justify-center rounded-full
+              border border-gray-200 text-gray-600 transition-colors
+              disabled:cursor-not-allowed disabled:opacity-40
+              enabled:hover:border-red-600 enabled:hover:text-red-600
+            "
+          >
+            <Plus size={14} />
+          </button>
+        </div>
+      </div>
+
       <div className="max-h-105 overflow-y-auto p-6">
         {activeTab === TABS.DATE ? (
           <BookingCalendar value={selectedDate} onChange={handleDateChange} />
@@ -218,9 +267,7 @@ const BookingCard = ({ venue }) => {
           </div>
         </div>
 
-        {error && <p className="mt-3 text-sm text-red-600">{error}</p>}
-
-        <button
+        <Button
           type="button"
           disabled={!canProceed}
           onClick={handleContinue}
@@ -235,15 +282,8 @@ const BookingCard = ({ venue }) => {
             }
           `}
         >
-          {isReserving ? (
-            <>
-              <Loader2 size={18} className="animate-spin" />
-              Reserving...
-            </>
-          ) : (
-            "Continue Booking"
-          )}
-        </button>
+          Continue Booking
+        </Button>
       </div>
     </div>
   );

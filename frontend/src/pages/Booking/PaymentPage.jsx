@@ -1,6 +1,8 @@
 import {
+  useCallback,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from "react";
 
@@ -15,6 +17,8 @@ import {
 
 import {
   ArrowLeft,
+  RefreshCcw,
+  ShieldCheck,
 } from "lucide-react";
 
 import PaymentCard from "../../components/booking/PaymentCard";
@@ -22,10 +26,13 @@ import PaymentElementSkeleton from "../../components/booking/PaymentElementSkele
 import PaymentForm from "../../components/booking/PaymentForm";
 import PaymentSecurityCard from "../../components/booking/PaymentSecurityCard";
 import ReservationTimer from "../../components/booking/ReservationTimer";
-import CustomerDetailsSidebar from "../../components/booking/CustomerDetailsSidebar";
+import BookingSummaryCard from "../../components/booking/BookingSummaryCard";
 import EmptyState from "../../components/common/EmptyState";
+import Modal from "../../components/ui/Modal";
 
 import usePaymentIntent from "../../hooks/usePaymentIntent";
+import useReservationCountdown from "../../hooks/useReservationCountdown";
+import useLeaveConfirmation from "../../hooks/useLeaveConfirmation";
 import { getStripe } from "../../utils/stripe";
 
 import {
@@ -77,14 +84,8 @@ const PaymentPage = () => {
 
   );
 
-  useEffect(() => {
-
-    fetchBooking();
-
-  }, [bookingId]);
-
   const fetchBooking =
-    async () => {
+    useCallback(async () => {
 
       try {
 
@@ -111,7 +112,57 @@ const PaymentPage = () => {
 
       }
 
-    };
+    }, [bookingId]);
+
+  useEffect(() => {
+
+    fetchBooking();
+
+  }, [fetchBooking]);
+
+  useEffect(() => {
+
+    if (!booking) return;
+
+    // A stale/deep link to this URL for a booking that's no longer
+    // RESERVED (already expired, or already paid) shouldn't render the
+    // payment form at all.
+    if (booking.status === "EXPIRED") {
+      navigate(`/booking/${bookingId}/expired`, { replace: true });
+    } else if (booking.status === "CONFIRMED") {
+      navigate(`/booking/${bookingId}/confirmation`, { replace: true });
+    }
+
+  }, [booking, bookingId, navigate]);
+
+  const shouldGuardLeaveRef = useRef(false);
+
+  const handleExpire = useCallback(() => {
+
+    // Force this synchronously (not via state) so the leave-guard can't
+    // still see "should block" for the instant it takes React to
+    // re-render - see useLeaveConfirmation for why a ref is required here.
+    shouldGuardLeaveRef.current = false;
+
+    navigate(
+      `/booking/${bookingId}/expired`,
+      { replace: true }
+    );
+
+  }, [navigate, bookingId]);
+
+  const isReserved = booking?.status === "RESERVED";
+
+  const countdown = useReservationCountdown(
+    isReserved ? booking?.reserved_until : null,
+    handleExpire
+  );
+
+  const shouldGuardLeave = isReserved && !countdown.isExpired;
+
+  shouldGuardLeaveRef.current = shouldGuardLeave;
+
+  const blocker = useLeaveConfirmation(shouldGuardLeaveRef);
 
   if (loading) {
 
@@ -178,47 +229,6 @@ const PaymentPage = () => {
                 mt-5
               "
             />
-
-            <div
-              className="
-                h-20
-                rounded-xl
-                bg-gray-100
-                animate-pulse
-                mt-5
-              "
-            />
-
-            <div
-              className="
-                flex
-                justify-between
-                mt-6
-                gap-4
-              "
-            >
-
-              <div
-                className="
-                  h-12
-                  w-28
-                  rounded-xl
-                  bg-gray-100
-                  animate-pulse
-                "
-              />
-
-              <div
-                className="
-                  h-12
-                  w-40
-                  rounded-xl
-                  bg-gray-100
-                  animate-pulse
-                "
-              />
-
-            </div>
 
           </div>
 
@@ -294,19 +304,80 @@ const PaymentPage = () => {
               font-bold
             "
           >
-            Payment
+            Confirm &amp; Pay
           </h1>
 
           <p
             className="
               text-gray-500
               mt-2
-              mb-8
+              mb-6
             "
           >
-            Complete your secure payment
-            to confirm your booking.
+            Your slots are held for you while you complete payment. Once
+            payment succeeds, your booking is confirmed instantly.
           </p>
+
+          <div
+            className="
+              grid
+              gap-3
+              sm:grid-cols-3
+              mb-8
+              text-xs
+              text-gray-600
+            "
+          >
+
+            <div
+              className="
+                flex
+                items-start
+                gap-2
+                rounded-xl
+                border
+                border-gray-100
+                bg-gray-50
+                p-3
+              "
+            >
+              <ShieldCheck size={16} className="mt-0.5 flex-shrink-0 text-green-600" />
+              <span>Payments are encrypted and processed securely by Stripe.</span>
+            </div>
+
+            <div
+              className="
+                flex
+                items-start
+                gap-2
+                rounded-xl
+                border
+                border-gray-100
+                bg-gray-50
+                p-3
+              "
+            >
+              <RefreshCcw size={16} className="mt-0.5 flex-shrink-0 text-blue-600" />
+              <span>Refunds follow the venue's cancellation policy.</span>
+            </div>
+
+            <div
+              className="
+                flex
+                items-start
+                gap-2
+                rounded-xl
+                border
+                border-gray-100
+                bg-gray-50
+                p-3
+              "
+            >
+              <ArrowLeft size={16} className="mt-0.5 flex-shrink-0 text-gray-500" />
+              <span>Leaving this page doesn't cancel your held reservation.</span>
+            </div>
+
+          </div>
 
           {intentError ? (
 
@@ -330,14 +401,20 @@ const PaymentPage = () => {
               <PaymentForm
                 booking={booking}
                 bookingId={bookingId}
+                isExpired={countdown.isExpired}
                 onBack={() =>
                   navigate(-1)
                 }
-                onSuccess={() =>
+                onSuccess={() => {
+                  // A successful payment is the flow completing, not the
+                  // user "leaving" - don't let the leave-guard intercept
+                  // our own redirect to the confirmation page.
+                  shouldGuardLeaveRef.current = false;
+
                   navigate(
                     `/booking/${bookingId}/confirmation`
-                  )
-                }
+                  );
+                }}
               />
 
             </Elements>
@@ -353,12 +430,6 @@ const PaymentPage = () => {
               </PaymentCard>
 
               <PaymentSecurityCard />
-
-              <ReservationTimer
-                reservedUntil={
-                  booking.reserved_until
-                }
-              />
 
               {/* Buttons */}
 
@@ -428,11 +499,103 @@ const PaymentPage = () => {
 
         {/* Right */}
 
-        <CustomerDetailsSidebar
+        <BookingSummaryCard
           booking={booking}
+          showTimer={isReserved}
+          timerSlot={
+            <ReservationTimer
+              minutes={countdown.minutes}
+              seconds={countdown.seconds}
+              isExpired={countdown.isExpired}
+            />
+          }
         />
 
       </div>
+
+      <Modal isOpen={blocker.state === "blocked"}>
+
+        <div
+          className="
+            w-full
+            max-w-sm
+            rounded-2xl
+            bg-white
+            p-6
+            text-center
+            shadow-xl
+          "
+        >
+
+          <h3
+            className="
+              text-lg
+              font-bold
+              text-gray-900
+            "
+          >
+            Your reservation is being held
+          </h3>
+
+          <p
+            className="
+              mt-2
+              text-sm
+              text-gray-500
+            "
+          >
+            Leaving this page may cause your reservation to expire before
+            you complete payment.
+          </p>
+
+          <div
+            className="
+              mt-6
+              flex
+              gap-3
+            "
+          >
+
+            <button
+              type="button"
+              onClick={() => blocker.reset?.()}
+              className="
+                flex-1
+                rounded-xl
+                bg-red-600
+                py-2.5
+                font-semibold
+                text-white
+                transition
+                hover:bg-red-700
+              "
+            >
+              Stay
+            </button>
+
+            <button
+              type="button"
+              onClick={() => blocker.proceed?.()}
+              className="
+                flex-1
+                rounded-xl
+                border
+                border-gray-200
+                py-2.5
+                font-semibold
+                text-gray-700
+                transition
+                hover:bg-gray-50
+              "
+            >
+              Leave Anyway
+            </button>
+
+          </div>
+
+        </div>
+
+      </Modal>
 
     </section>
 
