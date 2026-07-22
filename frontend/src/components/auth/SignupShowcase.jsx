@@ -12,7 +12,36 @@ import weddingHall from "../../assets/auth/pic1.jpg";
 import outdoorVenue from "../../assets/auth/pic2.jpg";
 import conferenceRoom from "../../assets/auth/pic3.jpg";
 
-const SignupShowcase = () => {
+const COPY = {
+  customer: {
+    headlineLead: "Create Your Account",
+    headlineTail: "and Start Booking",
+    headlineAccent: "Amazing Venues",
+    paragraph:
+      "Join BookMyVenue and discover, book and manage venues for any occasion — all in one place.",
+    statValue: "10,000+",
+    statLabel: "Happy Customers",
+    testimonial:
+      "BookMyVenue made it easy to find the perfect venue for our wedding.",
+    testimonialName: "Priya Sharma",
+  },
+  owner: {
+    headlineLead: "List Your Venue",
+    headlineTail: "and Turn It Into a",
+    headlineAccent: "Thriving Business",
+    paragraph:
+      "Join BookMyVenue as a venue owner and reach thousands of customers actively booking for every occasion.",
+    statValue: "500+",
+    statLabel: "Venues Listed",
+    testimonial:
+      "Listing our banquet hall on BookMyVenue doubled our bookings within months.",
+    testimonialName: "Arjun Mehta, Venue Owner",
+  },
+};
+
+const SignupShowcase = ({ mode = "customer" }) => {
+  const copy = COPY[mode] ?? COPY.customer;
+
   return (
     <div
       className="
@@ -28,20 +57,20 @@ const SignupShowcase = () => {
 
         <h1
           className="
-            text-4xl 
+            text-4xl
             lg:text-4xl
             font-black
             leading-tight
             tracking-tight
           "
         >
-          Create Your Account
+          {copy.headlineLead}
           <br />
 
-          and Start Booking{" "}
+          {copy.headlineTail}{" "}
 
           <span className="text-red-600">
-            Amazing Venues
+            {copy.headlineAccent}
           </span>
         </h1>
 
@@ -53,9 +82,7 @@ const SignupShowcase = () => {
             max-w-2xl
           "
         >
-          Join BookMyVenue and discover,
-          book and manage venues for any
-          occasion — all in one place.
+          {copy.paragraph}
         </p>
 
       </div>
@@ -121,11 +148,11 @@ const SignupShowcase = () => {
               text-red-600
             "
           >
-            10,000+
+            {copy.statValue}
           </h3>
 
           <p className="mt-1">
-            Happy Customers
+            {copy.statLabel}
           </p>
 
         </div>
@@ -171,14 +198,12 @@ const SignupShowcase = () => {
                 text-gray-700
               "
             >
-              BookMyVenue made it easy
-              to find the perfect venue
-              for our wedding.
+              {copy.testimonial}
             </p>
 
             <div className="mt-4">
               <p className="font-semibold">
-                Priya Sharma
+                {copy.testimonialName}
               </p>
 
               <div

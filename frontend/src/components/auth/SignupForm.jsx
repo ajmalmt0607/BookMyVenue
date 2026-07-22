@@ -10,13 +10,21 @@ import {
 
 import InputField from "../../components/ui/InputField";
 import PasswordField from "../../components/ui/PasswordField";
+import AuthModeToggle from "./AuthModeToggle";
 
 import OtpVerificationModal from "./OtpVerificationModal";
 
 import { signupSchema } from "../../validations/authValidation";
 import { signupUser } from "../../services/authService";
 
-const SignupForm = () => {
+import { ROUTES } from "../../constants/routes";
+
+// A venue owner is just a User with role=VENUE_OWNER - same signup fields,
+// same OTP flow as a customer. Listing an actual venue happens later, as
+// its own step, not during account signup.
+const SignupForm = ({ mode = "customer" }) => {
+  const isOwner = mode === "owner";
+
   const navigate = useNavigate();
 
   const [loading, setLoading] =
@@ -93,9 +101,12 @@ const SignupForm = () => {
     try {
       setLoading(true);
 
-      await signupUser(
-        formData
-      );
+      await signupUser({
+        ...formData,
+        ...(isOwner && {
+          role: "VENUE_OWNER",
+        }),
+      });
 
       setSignupEmail(
         formData.email
@@ -131,6 +142,8 @@ const SignupForm = () => {
           lg:p-10
         "
       >
+        <AuthModeToggle type="signup" />
+
         <h2
           className="
             text-4xl
@@ -138,7 +151,7 @@ const SignupForm = () => {
             tracking-tight
           "
         >
-          Sign Up
+          {isOwner ? "List Your Venue" : "Sign Up"}
         </h2>
 
         <p
@@ -148,8 +161,9 @@ const SignupForm = () => {
             mb-8
           "
         >
-          Create your account to get
-          started
+          {isOwner
+            ? "Create a venue-owner account to start hosting."
+            : "Create your account to get started"}
         </p>
 
         <form
@@ -434,6 +448,8 @@ const SignupForm = () => {
                 />
                 Creating Account...
               </>
+            ) : isOwner ? (
+              "List My Venue"
             ) : (
               "Create Account"
             )}
@@ -452,7 +468,9 @@ const SignupForm = () => {
               type="button"
               onClick={() =>
                 navigate(
-                  "/login"
+                  isOwner
+                    ? ROUTES.OWNER_LOGIN
+                    : ROUTES.LOGIN
                 )
               }
               className="

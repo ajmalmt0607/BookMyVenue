@@ -1,7 +1,10 @@
 import SignupShowcase from "../../components/auth/SignupShowcase";
 import SignupForm from "../../components/auth/SignupForm";
+import useAuthMode from "../../hooks/useAuthMode";
 
 const SignupPage = () => {
+  const mode = useAuthMode();
+
   return (
     <>
 
@@ -21,9 +24,9 @@ const SignupPage = () => {
             items-center
           "
         >
-          <SignupShowcase />
+          <SignupShowcase mode={mode} />
 
-          <SignupForm />
+          <SignupForm mode={mode} />
         </div>
       </section>
     </>

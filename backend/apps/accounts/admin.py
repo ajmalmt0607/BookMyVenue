@@ -14,6 +14,7 @@ class CustomUserAdmin(UserAdmin):
         "last_name",
         "phone_number",
         "role",
+        "is_venue_owner",
         "is_email_verified",
         "is_staff",
         "is_active",
@@ -21,6 +22,7 @@ class CustomUserAdmin(UserAdmin):
 
     list_filter = (
         "role",
+        "is_venue_owner",
         "is_email_verified",
         "is_staff",
         "is_active",
@@ -38,7 +40,7 @@ class CustomUserAdmin(UserAdmin):
     fieldsets = (
         (None, {"fields": ("email", "password")}),
         ("Personal Info", {"fields": ("first_name", "last_name", "phone_number")}),
-        ("Role & Verification", {"fields": ("role", "is_email_verified")}),
+        ("Role & Verification", {"fields": ("role", "is_venue_owner", "is_email_verified")}),
         ("Permissions", {"fields": ("is_active", "is_staff", "is_superuser", "groups", "user_permissions")}),
         ("Important Dates", {"fields": ("last_login", "date_joined", "created_at", "updated_at")}),
     )
@@ -56,6 +58,7 @@ class CustomUserAdmin(UserAdmin):
                     "last_name",
                     "phone_number",
                     "role",
+                    "is_venue_owner",
                     "password1",
                     "password2",
                     "is_staff",

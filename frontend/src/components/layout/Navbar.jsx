@@ -4,12 +4,14 @@ import {
   Building2,
   Menu,
 } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 import Button from "../ui/Button";
 import MobileMenu from "./MobileMenu";
 
 import UserMenu from "../navbar/UserMenu";
+
+import { ROUTES } from "../../constants/routes";
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -78,17 +80,19 @@ const Navbar = () => {
               "
             >
 
-              <Button
-                className="
-                  bg-red-600
-                  text-white
-                  hover:bg-red-700
-                  px-6
-                  shadow-sm
-                "
-              >
-                List Your Venue
-              </Button>
+              <Link to={ROUTES.OWNER_SIGNUP}>
+                <Button
+                  className="
+                    bg-red-600
+                    text-white
+                    hover:bg-red-700
+                    px-6
+                    shadow-sm
+                  "
+                >
+                  List Your Venue
+                </Button>
+              </Link>
 
               <UserMenu />
 

@@ -102,6 +102,22 @@ const router = createBrowserRouter([
               </PublicRoute>
             ),
           },
+          {
+            path: "/owner/signup",
+            element: (
+              <PublicRoute>
+                <SignupPage />
+              </PublicRoute>
+            ),
+          },
+          {
+            path: "/owner/login",
+            element: (
+              <PublicRoute>
+                <LoginPage />
+              </PublicRoute>
+            ),
+          },
         ],
       },
     ],

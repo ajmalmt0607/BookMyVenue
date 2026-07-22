@@ -37,7 +37,6 @@ class UserManager(BaseUserManager):
 class User(AbstractUser):
     class Role(models.TextChoices):
         USER = "USER", "User"
-        VENUE_OWNER = "VENUE_OWNER", "Venue Owner"
         ADMIN = "ADMIN", "Admin"
 
     username = None
@@ -62,6 +61,7 @@ class User(AbstractUser):
         choices=Role.choices,
         default=Role.USER,
     )
+    is_venue_owner = models.BooleanField(default=False)
 
     is_email_verified = models.BooleanField(default=False)
 
@@ -91,10 +91,6 @@ class User(AbstractUser):
         return self.role == self.Role.USER
 
     @property
-    def is_venue_owner(self):
-        return self.role == self.Role.VENUE_OWNER
-
-    @property
     def is_admin_user(self):
         return self.role == self.Role.ADMIN
 
@@ -110,6 +106,7 @@ class TempUser(models.Model):
     phone_number = models.CharField(max_length=20, blank=True, null=True)
 
     password = models.CharField(max_length=255)
+    wants_venue_owner = models.BooleanField(default=False)
 
     is_verified = models.BooleanField(default=False)
 

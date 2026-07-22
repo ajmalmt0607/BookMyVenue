@@ -1,6 +1,7 @@
 // src/components/layout/MobileMenu.jsx
 
 import { X, Building2 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 import Button from "../ui/Button";
 import CustomNavLink from "../ui/NavLink";
@@ -8,7 +9,14 @@ import CustomNavLink from "../ui/NavLink";
 import { ROUTES } from "../../constants/routes";
 
 const MobileMenu = ({ isOpen, onClose }) => {
+  const navigate = useNavigate();
+
   if (!isOpen) return null;
+
+  const goTo = (path) => {
+    navigate(path);
+    onClose();
+  };
 
   return (
     <>
@@ -99,17 +107,19 @@ const MobileMenu = ({ isOpen, onClose }) => {
         <div className="mt-auto flex flex-col gap-3">
 
           <Button
+            onClick={() => goTo(ROUTES.LOGIN)}
             className="
               border
-              border-green-600
-              text-green-700
-              hover:bg-green-50
+              border-gray-300
+              text-gray-800
+              hover:bg-gray-50
             "
           >
             Login
           </Button>
 
           <Button
+            onClick={() => goTo(ROUTES.SIGNUP)}
             className="
               border
               border-red-600
@@ -122,6 +132,7 @@ const MobileMenu = ({ isOpen, onClose }) => {
           </Button>
 
           <Button
+            onClick={() => goTo(ROUTES.OWNER_SIGNUP)}
             className="
               bg-red-600
               text-white

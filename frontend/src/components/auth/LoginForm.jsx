@@ -9,6 +9,7 @@ import {
 
 import InputField from "../../components/ui/InputField";
 import PasswordField from "../../components/ui/PasswordField";
+import AuthModeToggle from "./AuthModeToggle";
 
 import {
   loginSchema,
@@ -26,7 +27,10 @@ import {
   loginSuccess,
 } from "../../features/auth/authSlice";
 
-const LoginForm = () => {
+import { ROUTES } from "../../constants/routes";
+
+const LoginForm = ({ mode = "customer" }) => {
+  const isOwner = mode === "owner";
   const navigate =
     useNavigate();
 
@@ -145,6 +149,8 @@ const LoginForm = () => {
         lg:p-10
       "
     >
+      <AuthModeToggle type="login" />
+
       <h2
         className="
           text-4xl
@@ -152,7 +158,7 @@ const LoginForm = () => {
           tracking-tight
         "
       >
-        Welcome Back
+        {isOwner ? "Welcome Back, Host" : "Welcome Back"}
       </h2>
 
       <p
@@ -162,8 +168,9 @@ const LoginForm = () => {
           mb-8
         "
       >
-        Login to continue booking
-        venues.
+        {isOwner
+          ? "Log in to manage your venues and bookings."
+          : "Login to continue booking venues."}
       </p>
 
       <form
@@ -310,7 +317,9 @@ const LoginForm = () => {
             type="button"
             onClick={() =>
               navigate(
-                "/signup"
+                isOwner
+                  ? ROUTES.OWNER_SIGNUP
+                  : ROUTES.SIGNUP
               )
             }
             className="

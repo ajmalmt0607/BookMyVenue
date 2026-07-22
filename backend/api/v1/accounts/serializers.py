@@ -14,6 +14,14 @@ class SignupSerializer(serializers.Serializer):
     phone_number = serializers.CharField(max_length=20, required=False, allow_blank=True)
     password = serializers.CharField(write_only=True, min_length=8)
     confirm_password = serializers.CharField(write_only=True, min_length=8)
+    role = serializers.ChoiceField(
+        choices=[
+            (User.Role.USER, User.Role.USER.label),
+            ("VENUE_OWNER", "Venue Owner"),
+        ],
+        required=False,
+        default=User.Role.USER,
+    )
 
     def validate_email(self, value):
         email = value.lower().strip()
@@ -41,6 +49,7 @@ class SignupSerializer(serializers.Serializer):
                 "last_name": validated_data.get("last_name", ""),
                 "phone_number": validated_data.get("phone_number", ""),
                 "password": make_password(validated_data["password"]),
+                "wants_venue_owner": validated_data.get("role") == "VENUE_OWNER",
                 "is_verified": False,
             },
         )
@@ -136,6 +145,7 @@ class VerifySignupOTPSerializer(serializers.Serializer):
             last_name=temp_user.last_name,
             phone_number=temp_user.phone_number,
             role=User.Role.USER,
+            is_venue_owner=temp_user.wants_venue_owner,
             is_email_verified=True,
             is_active=True,
         )
@@ -320,6 +330,7 @@ class UserBasicSerializer(serializers.ModelSerializer):
             "full_name",
             "phone_number",
             "role",
+            "is_venue_owner",
             "is_email_verified",
         ]
 
@@ -334,4 +345,5 @@ class CurrentUserSerializer(
         fields = [
             "email",
             "role",
+            "is_venue_owner",
         ]

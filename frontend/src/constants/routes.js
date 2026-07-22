@@ -9,5 +9,6 @@ export const ROUTES = {
   LOGIN: "/login",
   SIGNUP: "/signup",
 
+  OWNER_LOGIN: "/owner/login",
   OWNER_SIGNUP: "/owner/signup",
 };

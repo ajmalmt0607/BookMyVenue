@@ -27,6 +27,7 @@ import { useDispatch } from "react-redux";
 import {
   logout,
 } from "../../features/auth/authSlice";
+import { ROUTES } from "../../constants/routes";
 
 const UserMenu = () => {
   const navigate =
@@ -126,7 +127,7 @@ const UserMenu = () => {
               <button
                 onClick={() => {
                   navigate(
-                    "/login"
+                    ROUTES.LOGIN
                   );
 
                   setIsOpen(
@@ -148,7 +149,7 @@ const UserMenu = () => {
               <button
                 onClick={() => {
                   navigate(
-                    "/signup"
+                    ROUTES.SIGNUP
                   );
 
                   setIsOpen(
@@ -174,6 +175,15 @@ const UserMenu = () => {
               />
 
               <button
+                onClick={() => {
+                  navigate(
+                    ROUTES.OWNER_SIGNUP
+                  );
+
+                  setIsOpen(
+                    false
+                  );
+                }}
                 className="
                   w-full
                   px-5

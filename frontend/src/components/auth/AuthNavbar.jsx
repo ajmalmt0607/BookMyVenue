@@ -55,55 +55,20 @@ const AuthNavbar = () => {
             </span>
           </Link>
 
-          {/* Right Actions */}
+          {/* Right Action */}
 
-          <div
+          <Link
+            to={ROUTES.HOME}
             className="
-              flex
-              items-center
-              gap-4
+              text-sm
+              font-medium
+              text-gray-500
+              hover:text-gray-900
+              transition-colors
             "
           >
-            <Link
-              to={ROUTES.OWNER_SIGNUP}
-              className="
-                hidden
-                sm:flex
-                items-center
-                justify-center
-                px-6
-                h-11
-                border
-                border-red-600
-                rounded-xl
-                text-red-600
-                font-medium
-                hover:bg-red-50
-                transition-all
-              "
-            >
-              List Your Venue
-            </Link>
-
-            <Link
-              to={ROUTES.LOGIN}
-              className="
-                flex
-                items-center
-                justify-center
-                px-6
-                h-11
-                bg-black
-                text-white
-                rounded-xl
-                font-medium
-                hover:bg-gray-800
-                transition-all
-              "
-            >
-              Log In
-            </Link>
-          </div>
+            Back to Home
+          </Link>
         </div>
       </div>
     </header>
