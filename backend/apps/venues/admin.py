@@ -3,6 +3,7 @@ from django.contrib import admin
 from .models import (
     Amenity,
     Booking,
+    BookingSlot,
     Payment,
     PolicyType,
     Review,
@@ -244,12 +245,6 @@ class VenueTimeSlotAdmin(admin.ModelAdmin):
         "venue__name",
         "name",
     )
-
-
-from django.contrib import admin
-
-from apps.venues.models import Booking
-from apps.venues.models import BookingSlot
 
 
 class BookingSlotInline(admin.TabularInline):

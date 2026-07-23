@@ -1,7 +1,7 @@
-from celery import shared_task
-
 from django.db import transaction
 from django.utils import timezone
+
+from celery import shared_task
 
 from apps.venues.models import Booking
 from apps.venues.services.booking.booking_service import BookingService

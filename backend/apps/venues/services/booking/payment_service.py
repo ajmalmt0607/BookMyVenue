@@ -5,8 +5,7 @@ from django.conf import settings
 from django.db import transaction
 from django.utils import timezone
 
-from apps.venues.models import Booking
-from apps.venues.models import Payment
+from apps.venues.models import Booking, Payment
 from apps.venues.services.booking.booking_service import BookingService
 
 logger = logging.getLogger(__name__)

@@ -1,12 +1,17 @@
 import random
 
-import resend
 from django.conf import settings
+
+import resend
 from rest_framework_simplejwt.tokens import RefreshToken
 
 
 def generate_otp():
     return str(random.randint(100000, 999999))
+
+
+def normalize_email(value):
+    return value.lower().strip()
 
 
 def send_otp_email(email, otp, purpose):

@@ -1,14 +1,10 @@
 from datetime import date
 
 from django.core.cache import cache
-from django.db.models import Exists
-from django.db.models import OuterRef
+from django.db.models import Exists, OuterRef
 from django.utils import timezone
 
-from apps.venues.models import Booking
-from apps.venues.models import BookingSlot
-from apps.venues.models import Venue
-from apps.venues.models import VenueTimeSlot
+from apps.venues.models import Booking, BookingSlot, Venue, VenueTimeSlot
 
 
 def availability_cache_key(venue: Venue, booking_date: date) -> str:

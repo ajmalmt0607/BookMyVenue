@@ -1,3 +1,5 @@
+from rest_framework import serializers
+
 from apps.venues.models import (
     Amenity,
     Booking,
@@ -11,7 +13,6 @@ from apps.venues.models import (
 )
 from apps.venues.services.media.thumbnails import get_thumbnail_url
 from apps.venues.services.reviews.review_service import ReviewService
-from rest_framework import serializers
 
 
 class LocationSearchSerializer(

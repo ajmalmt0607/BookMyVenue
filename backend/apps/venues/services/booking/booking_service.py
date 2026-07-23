@@ -4,10 +4,7 @@ from django.conf import settings
 from django.db import transaction
 from django.utils import timezone
 
-from apps.venues.models import Booking
-from apps.venues.models import BookingSlot
-from apps.venues.models import Venue
-from apps.venues.models import VenueTimeSlot
+from apps.venues.models import Booking, BookingSlot, Venue, VenueTimeSlot
 from apps.venues.services.booking.availability_service import AvailabilityService
 from apps.venues.services.booking.pricing_service import PricingService
 

@@ -1,29 +1,7 @@
-from datetime import datetime
 import logging
 import uuid
-import stripe
-from apps.venues.services.booking.availability_service import AvailabilityService, availability_cache_key
-from apps.venues.services.booking.booking_service import BookingService, SlotUnavailableError
-from apps.venues.services.booking.payment_service import PaymentService
-from apps.venues.services.booking.pricing_service import PricingService
-from rest_framework import status
-from api.v1.venues.filters import VenueFilter
-from rest_framework.filters import (
-    OrderingFilter,
-    SearchFilter,
-)
-from apps.venues.models import Booking, Venue, VenuePolicy, VenueTimeSlot
-from apps.common.pagination import StandardPagination
-from rest_framework.response import Response
-from rest_framework.views import APIView
-from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import generics
-from .serializers import AvailableSlotSerializer, BookingDetailSerializer, ConfirmBookingSerializer, ReviewSerializer, VenueDetailSerializer, VenueListSerializer
-from rest_framework.generics import ListAPIView, RetrieveAPIView
-from rest_framework.permissions import AllowAny
-from rest_framework.permissions import IsAuthenticated
+from datetime import datetime
 
-from datetime import date
 from django.conf import settings
 from django.core.cache import cache
 from django.db.models import Prefetch
@@ -32,10 +10,36 @@ from django.utils import timezone
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 
-from apps.venues.services.locations.factory import (
-    get_location_service,
+import stripe
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import status
+from rest_framework.filters import OrderingFilter, SearchFilter
+from rest_framework.generics import ListAPIView, RetrieveAPIView
+from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.response import Response
+from rest_framework.views import APIView
+
+from apps.common.pagination import StandardPagination
+from apps.venues.models import Booking, Venue, VenuePolicy, VenueTimeSlot
+from apps.venues.services.booking.availability_service import (
+    AvailabilityService,
+    availability_cache_key,
 )
+from apps.venues.services.booking.booking_service import BookingService, SlotUnavailableError
+from apps.venues.services.booking.payment_service import PaymentService
+from apps.venues.services.booking.pricing_service import PricingService
+from apps.venues.services.locations.factory import get_location_service
 from apps.venues.services.reviews.review_service import ReviewService
+
+from api.v1.venues.filters import VenueFilter
+from api.v1.venues.serializers import (
+    AvailableSlotSerializer,
+    BookingDetailSerializer,
+    ConfirmBookingSerializer,
+    ReviewSerializer,
+    VenueDetailSerializer,
+    VenueListSerializer,
+)
 
 logger = logging.getLogger(__name__)
 
