@@ -7,6 +7,12 @@ from django.db import models
 from django.utils import timezone
 
 
+class UserRole:
+    CUSTOMER = "CUSTOMER"
+    VENUE_OWNER = "VENUE_OWNER"
+    ADMIN = "ADMIN"
+
+
 class UserManager(BaseUserManager):
     def create_user(self, email, password=None, **extra_fields):
         if not email:
@@ -93,6 +99,18 @@ class User(AbstractUser):
     @property
     def is_admin_user(self):
         return self.role == self.Role.ADMIN
+
+    @property
+    def roles(self):
+        roles = [UserRole.CUSTOMER]
+
+        if self.is_venue_owner:
+            roles.append(UserRole.VENUE_OWNER)
+
+        if self.is_admin_user:
+            roles.append(UserRole.ADMIN)
+
+        return roles
 
 
 class TempUser(models.Model):

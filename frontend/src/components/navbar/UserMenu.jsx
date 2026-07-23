@@ -5,6 +5,7 @@ import {
 
 import {
   useNavigate,
+  useLocation,
 } from "react-router-dom";
 
 import {
@@ -13,6 +14,8 @@ import {
   User,
   Heart,
   CalendarDays,
+  LayoutDashboard,
+  ArrowLeftRight,
   LogOut,
   CircleHelp,
 } from "lucide-react";
@@ -23,15 +26,19 @@ import {
   getAccessToken,
   clearTokens,
 } from "../../utils/tokenStorage";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import {
   logout,
+  selectRoles,
 } from "../../features/auth/authSlice";
 import { ROUTES } from "../../constants/routes";
 
 const UserMenu = () => {
   const navigate =
     useNavigate();
+
+  const location =
+    useLocation();
 
   const [isOpen, setIsOpen] =
     useState(false);
@@ -47,6 +54,20 @@ const UserMenu = () => {
 
   const isAuthenticated =
     !!getAccessToken();
+
+  const roles = useSelector(
+    selectRoles
+  );
+
+  const isVenueOwner =
+    roles.includes(
+      "VENUE_OWNER"
+    );
+
+  const isInOwnerArea =
+    location.pathname.startsWith(
+      "/owner"
+    );
 
   const handleLogout = () => {
 
@@ -219,6 +240,73 @@ const UserMenu = () => {
 
           {isAuthenticated && (
             <>
+              {isVenueOwner && (
+                <>
+                  {isInOwnerArea ? (
+                    <button
+                      onClick={() => {
+                        navigate(
+                          ROUTES.HOME
+                        );
+
+                        setIsOpen(
+                          false
+                        );
+                      }}
+                      className="
+                        w-full
+                        px-5
+                        py-3
+                        flex
+                        items-center
+                        gap-3
+                        hover:bg-gray-50
+                      "
+                    >
+                      <ArrowLeftRight
+                        size={18}
+                      />
+
+                      Back to Customer Site
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => {
+                        navigate(
+                          ROUTES.OWNER_DASHBOARD
+                        );
+
+                        setIsOpen(
+                          false
+                        );
+                      }}
+                      className="
+                        w-full
+                        px-5
+                        py-3
+                        flex
+                        items-center
+                        gap-3
+                        hover:bg-gray-50
+                      "
+                    >
+                      <LayoutDashboard
+                        size={18}
+                      />
+
+                      Switch to Owner Dashboard
+                    </button>
+                  )}
+
+                  <div
+                    className="
+                      border-t
+                      my-2
+                    "
+                  />
+                </>
+              )}
+
               <button
                 onClick={() => {
                   navigate(

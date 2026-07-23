@@ -7,7 +7,6 @@ from rest_framework.views import APIView
 from django.contrib.auth.hashers import make_password
 
 from api.v1.accounts.serializers import (
-    CurrentUserSerializer,
     ForgotPasswordSerializer,
     LoginSerializer,
     ResetPasswordSerializer,
@@ -44,12 +43,12 @@ class VerifySignupOTPAPIView(APIView):
         user = serializer.save()
 
         tokens = get_tokens_for_user(user)
-        # user_data = UserBasicSerializer(user).data
+        user_data = UserBasicSerializer(user).data
 
         return Response(
             {
                 "message": "Email verified successfully.",
-                # "user": user_data,
+                "user": user_data,
                 "tokens": tokens,
             },
             status=status.HTTP_201_CREATED,
@@ -111,12 +110,12 @@ class LoginAPIView(APIView):
 
         user = serializer.validated_data["user"]
         tokens = get_tokens_for_user(user)
-        # user_data = UserBasicSerializer(user).data
+        user_data = UserBasicSerializer(user).data
 
         return Response(
             {
                 "message": "Login successful.",
-                # "user": user_data,
+                "user": user_data,
                 "tokens": tokens,
             },
             status=status.HTTP_200_OK,
@@ -216,7 +215,7 @@ class CurrentUserView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request,):
-        serializer = (CurrentUserSerializer(request.user))
+        serializer = (UserBasicSerializer(request.user))
 
         return Response(
             serializer.data

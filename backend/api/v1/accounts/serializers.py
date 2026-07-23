@@ -319,6 +319,9 @@ class ResetPasswordSerializer(
 
 class UserBasicSerializer(serializers.ModelSerializer):
     full_name = serializers.CharField(read_only=True)
+    roles = serializers.ListField(
+        child=serializers.CharField(), read_only=True
+    )
 
     class Meta:
         model = User
@@ -332,18 +335,5 @@ class UserBasicSerializer(serializers.ModelSerializer):
             "role",
             "is_venue_owner",
             "is_email_verified",
-        ]
-
-
-class CurrentUserSerializer(
-    serializers.ModelSerializer
-):
-
-    class Meta:
-        model = User
-
-        fields = [
-            "email",
-            "role",
-            "is_venue_owner",
+            "roles",
         ]

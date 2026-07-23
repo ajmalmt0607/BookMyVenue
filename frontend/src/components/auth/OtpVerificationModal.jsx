@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useDispatch } from "react-redux";
 
 import {
@@ -22,6 +22,8 @@ import {
   loginSuccess,
 } from "../../features/auth/authSlice";
 
+import { ROUTES } from "../../constants/routes";
+
 const OtpVerificationModal = ({
   isOpen,
   email,
@@ -29,6 +31,9 @@ const OtpVerificationModal = ({
 }) => {
   const navigate =
     useNavigate();
+
+  const location =
+    useLocation();
 
   const dispatch =
     useDispatch();
@@ -78,12 +83,19 @@ const OtpVerificationModal = ({
             refreshToken:
               response.tokens
                 .refresh,
+
+            user: response.user,
           })
         );
 
         onClose();
 
-        navigate("/");
+        navigate(
+          location.state?.from
+            ?.pathname ||
+            ROUTES.HOME,
+          { replace: true }
+        );
 
       } catch (error) {
         const apiError =

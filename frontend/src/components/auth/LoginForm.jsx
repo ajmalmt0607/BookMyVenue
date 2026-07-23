@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useDispatch } from "react-redux";
 
 import {
@@ -33,6 +33,9 @@ const LoginForm = ({ mode = "customer" }) => {
   const isOwner = mode === "owner";
   const navigate =
     useNavigate();
+
+  const location =
+    useLocation();
 
   const dispatch =
     useDispatch();
@@ -117,10 +120,17 @@ const LoginForm = ({ mode = "customer" }) => {
           refreshToken:
             response.tokens
               .refresh,
+
+          user: response.user,
         })
       );
 
-      navigate("/");
+      navigate(
+        location.state?.from
+          ?.pathname ||
+          ROUTES.HOME,
+        { replace: true }
+      );
 
     } catch (error) {
       const apiError =

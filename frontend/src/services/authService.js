@@ -31,3 +31,11 @@ export const loginUser = async (
 
   return response.data;
 };
+
+export const fetchCurrentUser = async () => {
+  const response = await api.get(
+    "/accounts/me/"
+  );
+
+  return response.data;
+};

@@ -11,4 +11,7 @@ export const ROUTES = {
 
   OWNER_LOGIN: "/owner/login",
   OWNER_SIGNUP: "/owner/signup",
+
+  OWNER_DASHBOARD: "/owner/dashboard",
+  OWNER_VENUES: "/owner/venues",
 };

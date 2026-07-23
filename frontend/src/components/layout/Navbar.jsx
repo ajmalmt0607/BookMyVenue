@@ -5,17 +5,22 @@ import {
   Menu,
 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
+import { useSelector } from "react-redux";
 
 import Button from "../ui/Button";
 import MobileMenu from "./MobileMenu";
 
 import UserMenu from "../navbar/UserMenu";
 
+import { selectRoles } from "../../features/auth/authSlice";
 import { ROUTES } from "../../constants/routes";
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const navigate = useNavigate();
+
+  const roles = useSelector(selectRoles);
+  const isVenueOwner = roles.includes("VENUE_OWNER");
 
   return (
     <>
@@ -80,19 +85,21 @@ const Navbar = () => {
               "
             >
 
-              <Link to={ROUTES.OWNER_SIGNUP}>
-                <Button
-                  className="
-                    bg-red-600
-                    text-white
-                    hover:bg-red-700
-                    px-6
-                    shadow-sm
-                  "
-                >
-                  List Your Venue
-                </Button>
-              </Link>
+              {!isVenueOwner && (
+                <Link to={ROUTES.OWNER_SIGNUP}>
+                  <Button
+                    className="
+                      bg-red-600
+                      text-white
+                      hover:bg-red-700
+                      px-6
+                      shadow-sm
+                    "
+                  >
+                    List Your Venue
+                  </Button>
+                </Link>
+              )}
 
               <UserMenu />
 
