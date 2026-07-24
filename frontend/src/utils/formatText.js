@@ -15,3 +15,6 @@ export const toTitleCase = (
     .join(" ");
 
 };
+
+export const formatCurrency = (value) =>
+  `₹${Number(value || 0).toLocaleString()}`;
