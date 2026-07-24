@@ -11,6 +11,7 @@ urlpatterns = [
     # Accounts APIs
     path("api/v1/accounts/", include("api.v1.accounts.urls")),
     path("api/v1/venues/", include("api.v1.venues.urls")),
+    path("api/v1/owner/", include("api.v1.owner.urls")),
 
     # JWT built-in APIs
     path("api/v1/auth/token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
