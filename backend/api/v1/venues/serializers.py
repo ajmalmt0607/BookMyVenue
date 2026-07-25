@@ -232,9 +232,6 @@ class VenueDetailSerializer(
         read_only=True,
     )
 
-    # `obj.policies.all()` reuses the view's Prefetch cache (already
-    # filtered to is_active and ordered by display_order), so this stays
-    # a single query for the whole detail request.
     policies = VenuePolicySerializer(
         many=True,
         read_only=True,
@@ -285,9 +282,7 @@ class VenueDetailSerializer(
         ]
 
     def get_map(self, obj):
-        # No runtime geocoding: coordinates are returned only if already
-        # stored, otherwise the frontend gets a human-readable fallback
-        # label built purely from existing address fields.
+
         has_coordinates = (
             obj.latitude is not None
             and obj.longitude is not None
@@ -312,9 +307,7 @@ class VenueDetailSerializer(
         return label or obj.country
 
     def get_reviews(self, obj):
-        # One combined field (list + summary) so this only ever costs a
-        # single aggregate query + a single limited select, instead of
-        # two separate SerializerMethodFields each re-running the query.
+        
         context = ReviewService.get_review_context(obj)
 
         return {

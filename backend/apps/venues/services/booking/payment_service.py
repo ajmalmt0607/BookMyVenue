@@ -76,8 +76,7 @@ class PaymentService:
     def _mark_payment_started(
         booking,
     ):
-        # First-time-only: a page refresh that re-fetches the same
-        # intent must not reset when payment was first initiated.
+
         if booking.payment_started_at:
             return
 
@@ -130,12 +129,6 @@ class PaymentService:
         payment_intent_id,
         charge_id=None,
     ):
-        """
-        Idempotently mark the payment SUCCESS and confirm its booking.
-        Safe to call more than once (duplicate webhooks, webhook + sync
-        confirm racing each other) - row locks make the second caller
-        see the already-confirmed state and no-op.
-        """
 
         try:
             payment = (
@@ -259,13 +252,7 @@ class PaymentService:
     def sync_payment_status(
         booking,
     ):
-        """
-        Re-verify the booking's PaymentIntent directly with Stripe and
-        apply the result. Used right after a successful client-side
-        confirmPayment() so confirmation doesn't depend solely on webhook
-        delivery, which can be delayed, misconfigured, or (in local dev)
-        simply not running.
-        """
+
 
         payment = getattr(
             booking,

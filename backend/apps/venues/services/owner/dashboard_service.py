@@ -18,10 +18,6 @@ class OwnerDashboardService:
                 "recent_bookings": [],
             }
 
-        # "Total Venues" is a public-facing credibility number - a DRAFT
-        # or PENDING venue isn't a real listing yet, so only APPROVED ones
-        # count, even though `has_venues` above (which just gates the
-        # empty-state) considers any venue the owner has started.
         approved_venue_count = owner_venues.filter(
             status=Venue.Status.APPROVED
         ).count()
@@ -32,9 +28,6 @@ class OwnerDashboardService:
             day=1, hour=0, minute=0, second=0, microsecond=0
         )
 
-        # One aggregate query for all three counters - each Count/Sum
-        # carries its own filter, so mixing a month-scoped stat with an
-        # all-time one (pending) costs nothing extra over a plain count().
         totals = bookings.aggregate(
             monthly_bookings=Count("id", filter=Q(created_at__gte=month_start)),
             monthly_revenue=Sum(
@@ -44,8 +37,6 @@ class OwnerDashboardService:
                     status=Booking.Status.CONFIRMED,
                 ),
             ),
-            # RESERVED = reserved but not yet paid for - the closest
-            # match to "pending" among the model's statuses.
             pending_bookings=Count("id", filter=Q(status=Booking.Status.RESERVED)),
         )
 

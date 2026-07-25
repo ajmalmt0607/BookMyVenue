@@ -5,8 +5,6 @@ from apps.venues.models import VenueImage
 
 
 class VenueImageService:
-    """Image upload, deletion, reordering, and primary-image management
-    for a venue draft."""
 
     @staticmethod
     def add_images(venue, images):
@@ -17,9 +15,6 @@ class VenueImageService:
 
         created = []
 
-        # ImageField only writes its file to storage inside Model.save(),
-        # which bulk_create() never calls - each image has to be saved
-        # individually or the uploaded file is silently never written.
         for offset, image_file in enumerate(images, start=1):
             image = VenueImage.objects.create(
                 venue=venue,
@@ -39,8 +34,6 @@ class VenueImageService:
 
         image.delete()
 
-        # FileField/ImageField never deletes its underlying file on model
-        # delete - without this the file silently orphans in storage.
         if file_to_delete:
             file_to_delete.delete(save=False)
 

@@ -37,9 +37,6 @@ class BookingService:
         terms_accepted=False,
     ):
 
-        # Lock the specific slot rows being requested (not the whole
-        # Venue) so concurrent reservations for *different* slots of the
-        # same venue/date don't serialize against each other.
         slots = list(
             VenueTimeSlot.objects.select_for_update().filter(
                 id__in=slot_ids,
@@ -53,10 +50,6 @@ class BookingService:
                 "No valid slots selected."
             )
 
-        # Re-check under the lock: any concurrent create_reservation()
-        # call for the same slot+date has either already committed
-        # (visible here) or is blocked behind the select_for_update
-        # above until it commits/rolls back.
         conflict_exists = BookingSlot.objects.filter(
             slot_id__in=[slot.id for slot in slots],
             booking__booking_date=booking_date,

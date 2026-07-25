@@ -52,8 +52,6 @@ class OwnerDashboardSerializer(serializers.Serializer):
 
 
 class OwnerVenueListSerializer(VenueListSerializer):
-    """Same shape as the public venue list, plus the moderation fields an
-    owner needs to see (status, is_active) that customers never see."""
 
     venue_type = serializers.SerializerMethodField()
     completion_percentage = serializers.SerializerMethodField()

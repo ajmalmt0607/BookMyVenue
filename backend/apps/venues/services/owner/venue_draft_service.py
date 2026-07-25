@@ -1,8 +1,6 @@
 from apps.common.functions import generate_slug
 from apps.venues.models import Venue, VenuePolicy
 
-# Order matters here: it drives both `next_step`/`current_step` in the
-# progress payload and the frontend's step-by-step wizard navigation.
 DRAFT_STEPS = ["basic_information", "images", "amenities", "policies", "time_slots"]
 
 REQUIRED_BASIC_INFO_FIELDS = [
@@ -21,10 +19,6 @@ REQUIRED_BASIC_INFO_FIELDS = [
 
 
 class VenueSubmissionError(Exception):
-    """Raised when a venue does not meet the requirements to be submitted
-    for approval. `errors` is a dict of step_name -> message, mirroring
-    how BookingService/SlotUnavailableError already signal a domain
-    failure for the view to translate into a Response."""
 
     def __init__(self, errors):
         self.errors = errors
@@ -32,16 +26,9 @@ class VenueSubmissionError(Exception):
 
 
 class VenueDraftService:
-    """Business logic for the step-by-step venue draft workflow: creating
-    a draft, saving each step, tracking completion, and submitting for
-    admin approval."""
 
     @staticmethod
     def create_draft(owner):
-        # An owner can have several venues in flight at once (multiple
-        # drafts, one pending approval, others already approved) - each
-        # call always starts a new draft. Resuming a specific in-progress
-        # draft is a separate action (Continue Setup on that draft's card).
         return Venue.objects.create(owner=owner, status=Venue.Status.DRAFT)
 
     @staticmethod
@@ -49,9 +36,6 @@ class VenueDraftService:
         for field_name, value in fields.items():
             setattr(venue, field_name, value)
 
-        # Keep the slug in sync with the name while the venue is still
-        # editable - once submitted/approved the slug is a public URL and
-        # shouldn't shift under anyone.
         if "name" in fields and venue.status in Venue.EDITABLE_STATUSES:
             venue.slug = generate_slug(fields["name"] or "venue")
 

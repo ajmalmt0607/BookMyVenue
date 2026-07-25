@@ -7,7 +7,7 @@ from api.v1.accounts.utils import generate_otp
 
 
 class OTPService:
-    """Issues one-time-passcodes and dispatches the delivery email."""
+    # issues one-time-passcodes and dispatches the delivery email.
 
     @staticmethod
     def issue(email, purpose):
@@ -34,7 +34,6 @@ class OTPService:
 
 
 class AccountService:
-    """Account mutations triggered by a verified OTP."""
 
     @staticmethod
     def activate_user(temp_user, otp_obj):

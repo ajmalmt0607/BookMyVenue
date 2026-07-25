@@ -312,12 +312,6 @@ class VenueReviewListAPIView(APIView):
 
 
 class BookingQuoteAPIView(APIView):
-    """
-    Read-only price preview for the Booking Details page, used before any
-    reservation exists. Reuses PricingService rather than duplicating its
-    fee/GST formula in the frontend - if the platform fee or GST rate
-    ever changes, this is the only place it needs to change.
-    """
 
     permission_classes = [IsAuthenticated]
 
@@ -400,13 +394,6 @@ class BookingQuoteAPIView(APIView):
 
 
 class ConfirmBookingAPIView(APIView):
-    """
-    The commitment point of the booking flow: creates the reservation
-    (with guest details captured in the same write) and the Stripe
-    PaymentIntent atomically. Nothing before this call touches the
-    database - venue/date/slot/guest selection up to here lives entirely
-    client-side.
-    """
 
     permission_classes = [IsAuthenticated]
 
@@ -547,14 +534,6 @@ class CancelBookingAPIView(APIView):
 
 
 class InitiatePaymentAPIView(APIView):
-    """
-    Idempotent "restore" of the booking's Stripe PaymentIntent. The
-    intent itself is created once, atomically, inside
-    ConfirmBookingAPIView - this endpoint exists only because Stripe
-    doesn't let a client_secret be re-read anywhere except the API (it
-    isn't persisted server-side), so the Payment page needs a way to
-    fetch it again on refresh/return without re-creating anything.
-    """
 
     permission_classes = [IsAuthenticated]
 
@@ -600,13 +579,6 @@ class InitiatePaymentAPIView(APIView):
 
 
 class ConfirmPaymentAPIView(APIView):
-    """
-    Synchronous fallback to the Stripe webhook: called right after the
-    frontend's stripe.confirmPayment() resolves, so booking confirmation
-    doesn't depend solely on webhook delivery. Re-verifies the
-    PaymentIntent status directly with Stripe rather than trusting the
-    client.
-    """
 
     permission_classes = [IsAuthenticated]
 
