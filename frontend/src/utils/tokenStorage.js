@@ -20,15 +20,6 @@ export const getRefreshToken = () =>
     "refresh_token"
   );
 
-export const updateAccessToken = (
-  access
-) => {
-  localStorage.setItem(
-    "access_token",
-    access
-  );
-};
-
 export const clearTokens = () => {
   localStorage.removeItem(
     "access_token"
