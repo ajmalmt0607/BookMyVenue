@@ -45,35 +45,42 @@ class Amenity(BaseModel):
 
 class Venue(BaseModel):
     class Status(models.TextChoices):
+        DRAFT = "DRAFT", "Draft"
         PENDING = "PENDING", "Pending"
         APPROVED = "APPROVED", "Approved"
         REJECTED = "REJECTED", "Rejected"
 
+    EDITABLE_STATUSES = [Status.DRAFT, Status.REJECTED]
+
     owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="venues")
-    venue_type = models.ForeignKey(VenueType, on_delete=models.PROTECT, related_name="venues")
+    venue_type = models.ForeignKey(
+        VenueType, on_delete=models.PROTECT, related_name="venues", null=True, blank=True
+    )
     amenities = models.ManyToManyField(Amenity, blank=True, related_name="venues")
-    name = models.CharField(max_length=255)
-    description = models.TextField()
+    name = models.CharField(max_length=255, blank=True)
+    description = models.TextField(blank=True)
     # Manual Address
-    venue_address = models.TextField()
-    location_name = models.CharField(max_length=255, db_index=True)
-    city = models.CharField(max_length=100, db_index=True)
+    venue_address = models.TextField(blank=True)
+    location_name = models.CharField(max_length=255, db_index=True, blank=True)
+    city = models.CharField(max_length=100, db_index=True, blank=True)
     district = models.CharField(max_length=100, blank=True, null=True)
-    state = models.CharField(max_length=100)
+    state = models.CharField(max_length=100, blank=True)
     country = models.CharField(max_length=100, default="India")
     # From Google/OpenStreetMap
-    location_address = models.TextField()
+    location_address = models.TextField(blank=True)
     latitude = models.DecimalField(max_digits=10, decimal_places=7, blank=True, null=True)
     longitude = models.DecimalField(max_digits=10, decimal_places=7, blank=True, null=True)
-    min_capacity = models.PositiveIntegerField()
-    max_capacity = models.PositiveIntegerField()
-    price_per_day = models.DecimalField(max_digits=12, decimal_places=2)
+    min_capacity = models.PositiveIntegerField(blank=True, null=True)
+    max_capacity = models.PositiveIntegerField(blank=True, null=True)
+    price_per_day = models.DecimalField(max_digits=12, decimal_places=2, blank=True, null=True)
     rating = models.DecimalField(max_digits=3, decimal_places=2, default=0)
     total_reviews = models.PositiveIntegerField(default=0)
-    status = models.CharField(max_length=20, choices=Status.choices, default=Status.PENDING)
+    status = models.CharField(max_length=20, choices=Status.choices, default=Status.DRAFT)
     is_featured = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
     slug = models.SlugField(unique=True, blank=True)
+    amenities_completed = models.BooleanField(default=False)
+    policies_completed = models.BooleanField(default=False)
 
     class Meta:
         db_table = "venues_venue"
@@ -86,13 +93,13 @@ class Venue(BaseModel):
 
     def save(self, *args, **kwargs):
         if not self.slug:
-            self.slug = generate_slug(self.name)
+            self.slug = generate_slug(self.name or "venue")
 
         super().save(*args, **kwargs)
 
     def __str__(self):
-        return self.name
-    
+        return self.name or f"Draft venue ({self.id})"
+
 
 class VenueImage(BaseModel):
     venue = models.ForeignKey(Venue, on_delete=models.CASCADE, related_name="images")

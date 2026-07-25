@@ -1,7 +1,87 @@
 from django.urls import path
 
-from api.v1.owner.views import OwnerDashboardAPIView
+from api.v1.owner.views import (
+    OwnerDashboardAPIView,
+    OwnerVenueDetailAPIView,
+    OwnerVenueListCreateAPIView,
+    VenueAmenitiesUpdateAPIView,
+    VenueBasicInfoUpdateAPIView,
+    VenueDraftProgressAPIView,
+    VenueImageDestroyAPIView,
+    VenueImageListCreateAPIView,
+    VenueImageReorderAPIView,
+    VenueImageSetPrimaryAPIView,
+    VenuePoliciesUpdateAPIView,
+    VenueSubmitForApprovalAPIView,
+    VenueTimeSlotDetailAPIView,
+    VenueTimeSlotListCreateAPIView,
+)
 
 urlpatterns = [
     path("dashboard/", OwnerDashboardAPIView.as_view(), name="owner-dashboard"),
+    path(
+        "venues/",
+        OwnerVenueListCreateAPIView.as_view(),
+        name="owner-venue-list-create",
+    ),
+    path(
+        "venues/<uuid:venue_id>/",
+        OwnerVenueDetailAPIView.as_view(),
+        name="owner-venue-detail",
+    ),
+    path(
+        "venues/<uuid:venue_id>/basic-info/",
+        VenueBasicInfoUpdateAPIView.as_view(),
+        name="owner-venue-basic-info",
+    ),
+    path(
+        "venues/<uuid:venue_id>/images/",
+        VenueImageListCreateAPIView.as_view(),
+        name="owner-venue-images",
+    ),
+    path(
+        "venues/<uuid:venue_id>/images/reorder/",
+        VenueImageReorderAPIView.as_view(),
+        name="owner-venue-images-reorder",
+    ),
+    path(
+        "venues/<uuid:venue_id>/images/<uuid:image_id>/",
+        VenueImageDestroyAPIView.as_view(),
+        name="owner-venue-image-detail",
+    ),
+    path(
+        "venues/<uuid:venue_id>/images/<uuid:image_id>/set-primary/",
+        VenueImageSetPrimaryAPIView.as_view(),
+        name="owner-venue-image-set-primary",
+    ),
+    path(
+        "venues/<uuid:venue_id>/amenities/",
+        VenueAmenitiesUpdateAPIView.as_view(),
+        name="owner-venue-amenities",
+    ),
+    path(
+        "venues/<uuid:venue_id>/policies/",
+        VenuePoliciesUpdateAPIView.as_view(),
+        name="owner-venue-policies",
+    ),
+    path(
+        "venues/<uuid:venue_id>/time-slots/",
+        VenueTimeSlotListCreateAPIView.as_view(),
+        name="owner-venue-time-slots",
+    ),
+    path(
+        "venues/<uuid:venue_id>/time-slots/<uuid:slot_id>/",
+        VenueTimeSlotDetailAPIView.as_view(),
+        name="owner-venue-time-slot-detail",
+    ),
+    path(
+        "venues/<uuid:venue_id>/progress/",
+        VenueDraftProgressAPIView.as_view(),
+        name="owner-venue-progress",
+    ),
+    path(
+        "venues/<uuid:venue_id>/submit/",
+        VenueSubmitForApprovalAPIView.as_view(),
+        name="owner-venue-submit",
+    ),
 ]
