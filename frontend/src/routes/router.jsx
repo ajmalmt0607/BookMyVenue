@@ -15,6 +15,7 @@ import LoginPage from "../pages/auth/LoginPage";
 
 import DashboardPage from "../pages/owner/DashboardPage";
 import VenueManagementPage from "../pages/owner/VenueManagementPage";
+import VenueWizardPage from "../pages/owner/VenueWizardPage";
 
 import PublicRoute from "./PublicRoute";
 import RequireAuth from "./RequireAuth";
@@ -149,6 +150,13 @@ const router = createBrowserRouter([
               {
                 path: "/owner/venues",
                 element: <VenueManagementPage />,
+              },
+              {
+                // Sidebar and header stay visible - only the content
+                // area swaps to the wizard, so setup still feels like
+                // part of the dashboard rather than a separate app.
+                path: "/owner/venues/:venueId/create/:step",
+                element: <VenueWizardPage />,
               },
             ],
           },

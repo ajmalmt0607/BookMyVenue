@@ -10,6 +10,7 @@ from apps.venues.models import (
     VenueImage,
     VenuePolicy,
     VenueTimeSlot,
+    VenueType,
 )
 from apps.venues.services.media.thumbnails import get_thumbnail_url
 from apps.venues.services.reviews.review_service import ReviewService
@@ -19,6 +20,18 @@ class LocationSearchSerializer(
     serializers.Serializer
 ):
     query = serializers.CharField()
+
+
+class VenueTypeSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = VenueType
+
+        fields = [
+            "id",
+            "name",
+            "icon",
+        ]
 
 
 class VenueListSerializer(serializers.ModelSerializer):
@@ -50,9 +63,6 @@ class VenueListSerializer(serializers.ModelSerializer):
         ]
 
     def _ordered_images(self, obj):
-        # `obj.images.all()` reuses the view's prefetch_related cache as
-        # long as no further DB-level filtering/ordering is applied to it,
-        # so sort in Python instead of `.order_by(...)` to avoid an N+1.
         return sorted(
             obj.images.all(),
             key=lambda image: (
@@ -200,6 +210,7 @@ class VenueTimeSlotSerializer(
             "end_time",
             "price",
             "max_guests",
+            "is_active",
         ]
 
 

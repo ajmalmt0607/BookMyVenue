@@ -2,6 +2,7 @@ import { NavLink } from "react-router-dom";
 import { LayoutDashboard, Building2 } from "lucide-react";
 
 import { ROUTES } from "../../constants/routes";
+import { OWNER_STICKY_TOP_MD } from "../../constants/layout";
 
 const NAV_ITEMS = [
   {
@@ -20,7 +21,7 @@ const OwnerSidebar = () => {
   return (
     <aside className="w-full md:w-64 shrink-0">
       <nav
-        className="
+        className={`
           bg-white
           rounded-3xl
           border
@@ -34,8 +35,8 @@ const OwnerSidebar = () => {
           overflow-x-auto
           md:overflow-visible
           md:sticky
-          md:top-[102px]
-        "
+          ${OWNER_STICKY_TOP_MD}
+        `}
       >
         {NAV_ITEMS.map(({ to, label, icon: Icon }) => (
           <NavLink

@@ -16,7 +16,14 @@ const PopoverPortal = ({
   return createPortal(
     <div
       ref={panelRef}
-      className={className}
+      // Callers animate their inner content with opacity/scale, which
+      // never shrinks this wrapper's own layout box - without this
+      // baseline, the wrapper stays a full-size, invisible, clickable
+      // dead zone over whatever sits beneath it even while "closed".
+      // pointer-events-auto on the caller's inner content (when open)
+      // still overrides this for its own subtree, so real popovers
+      // aren't affected.
+      className={`pointer-events-none ${className}`}
       style={{
         position: "fixed",
         top: position.top,

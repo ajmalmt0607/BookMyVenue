@@ -7,20 +7,24 @@ RECENT_BOOKINGS_LIMIT = 5
 
 
 class OwnerDashboardService:
-    """Aggregates a venue owner's dashboard: venue count, this month's
-    booking/revenue snapshot, and the most recent bookings across all of
-    their venues."""
-
     @staticmethod
     def get_dashboard(owner):
-        total_venues = Venue.active_objects.filter(owner=owner).count()
+        owner_venues = Venue.active_objects.filter(owner=owner)
 
-        if total_venues == 0:
+        if not owner_venues.exists():
             return {
                 "has_venues": False,
                 "stats": None,
                 "recent_bookings": [],
             }
+
+        # "Total Venues" is a public-facing credibility number - a DRAFT
+        # or PENDING venue isn't a real listing yet, so only APPROVED ones
+        # count, even though `has_venues` above (which just gates the
+        # empty-state) considers any venue the owner has started.
+        approved_venue_count = owner_venues.filter(
+            status=Venue.Status.APPROVED
+        ).count()
 
         bookings = Booking.active_objects.filter(venue__owner=owner)
 
@@ -52,7 +56,7 @@ class OwnerDashboardService:
         return {
             "has_venues": True,
             "stats": {
-                "total_venues": total_venues,
+                "total_venues": approved_venue_count,
                 "monthly_bookings": totals["monthly_bookings"],
                 "monthly_revenue": totals["monthly_revenue"] or 0,
                 "pending_bookings": totals["pending_bookings"],

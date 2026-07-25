@@ -6,6 +6,7 @@ export const getStatusBadgeClasses = (
 
     case "CONFIRMED":
     case "SUCCESS":
+    case "APPROVED":
       return "bg-green-50 text-green-700 border-green-200";
 
     case "RESERVED":
@@ -14,9 +15,11 @@ export const getStatusBadgeClasses = (
 
     case "CANCELLED":
     case "FAILED":
+    case "REJECTED":
       return "bg-red-50 text-red-700 border-red-200";
 
     case "EXPIRED":
+    case "DRAFT":
       return "bg-gray-100 text-gray-600 border-gray-200";
 
     default:

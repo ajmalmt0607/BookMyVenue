@@ -1,6 +1,24 @@
 import api from "../api/axios";
 import { getAccessToken } from "../utils/tokenStorage";
 
+export const getVenueTypes = async () => {
+  const response = await api.get("/venues/venue-types/");
+
+  return response.data;
+};
+
+export const getAmenities = async () => {
+  const response = await api.get("/venues/amenities/");
+
+  return response.data;
+};
+
+export const getPolicyTypes = async () => {
+  const response = await api.get("/venues/policy-types/");
+
+  return response.data;
+};
+
 export const getVenues = async (params = {}) => {
   const response = await api.get(
     "/venues/venues/",

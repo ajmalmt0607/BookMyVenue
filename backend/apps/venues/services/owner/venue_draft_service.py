@@ -38,6 +38,10 @@ class VenueDraftService:
 
     @staticmethod
     def create_draft(owner):
+        # An owner can have several venues in flight at once (multiple
+        # drafts, one pending approval, others already approved) - each
+        # call always starts a new draft. Resuming a specific in-progress
+        # draft is a separate action (Continue Setup on that draft's card).
         return Venue.objects.create(owner=owner, status=Venue.Status.DRAFT)
 
     @staticmethod

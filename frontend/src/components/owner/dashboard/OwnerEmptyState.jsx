@@ -3,8 +3,18 @@ import { useNavigate } from "react-router-dom";
 
 import { ROUTES } from "../../../constants/routes";
 
-const OwnerEmptyState = () => {
+// Shared by the Dashboard's empty state (default behavior: go to Venue
+// Management) and Venue Management's own empty state (onAction overridden
+// to create a draft and jump straight into the wizard) - same visual,
+// different call to action, so the markup isn't duplicated across pages.
+const OwnerEmptyState = ({
+  onAction,
+  actionLabel = "List Your First Venue",
+  actionLoading = false,
+}) => {
   const navigate = useNavigate();
+
+  const handleClick = onAction || (() => navigate(ROUTES.OWNER_VENUES));
 
   return (
     <div
@@ -31,15 +41,17 @@ const OwnerEmptyState = () => {
 
       <button
         type="button"
-        onClick={() => navigate(ROUTES.OWNER_VENUES)}
+        onClick={handleClick}
+        disabled={actionLoading}
         className="
           mt-2 rounded-xl bg-red-600 px-6 py-2.5
           text-sm font-semibold text-white
           transition-all duration-200 ease-out
           hover:-translate-y-0.5 hover:bg-red-700 hover:shadow-md
+          disabled:opacity-60
         "
       >
-        List Your First Venue
+        {actionLoading ? "Creating..." : actionLabel}
       </button>
     </div>
   );

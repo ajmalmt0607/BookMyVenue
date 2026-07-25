@@ -56,12 +56,26 @@ class OwnerVenueListSerializer(VenueListSerializer):
     owner needs to see (status, is_active) that customers never see."""
 
     venue_type = serializers.SerializerMethodField()
+    completion_percentage = serializers.SerializerMethodField()
 
     class Meta(VenueListSerializer.Meta):
-        fields = VenueListSerializer.Meta.fields + ["status", "is_active"]
+        fields = VenueListSerializer.Meta.fields + [
+            "status",
+            "is_active",
+            "updated_at",
+            "completion_percentage",
+        ]
 
     def get_venue_type(self, obj):
         return obj.venue_type.name if obj.venue_type_id else None
+
+    def get_completion_percentage(self, obj):
+        # Only meaningful for the one draft an owner can have at a time -
+        # skip the extra queries entirely for every other status.
+        if obj.status != Venue.Status.DRAFT:
+            return None
+
+        return VenueDraftService.get_progress(obj)["completion_percentage"]
 
 
 class VenueDraftCreateSerializer(serializers.ModelSerializer):
@@ -80,6 +94,9 @@ class VenueDraftCreateSerializer(serializers.ModelSerializer):
 class OwnerVenueDetailSerializer(serializers.ModelSerializer):
 
     venue_type = serializers.SerializerMethodField()
+    venue_type_id = serializers.PrimaryKeyRelatedField(
+        source="venue_type", read_only=True
+    )
     images = VenueImageSerializer(many=True, read_only=True)
     amenities = AmenitySerializer(many=True, read_only=True)
     policies = VenuePolicySerializer(many=True, read_only=True)
@@ -92,6 +109,7 @@ class OwnerVenueDetailSerializer(serializers.ModelSerializer):
             "slug",
             "status",
             "venue_type",
+            "venue_type_id",
             "name",
             "description",
             "venue_address",

@@ -1,6 +1,7 @@
 from django.urls import path
 
 from api.v1.venues.views import (
+    AmenityListAPIView,
     BookingDetailAPIView,
     BookingQuoteAPIView,
     CancelBookingAPIView,
@@ -8,11 +9,13 @@ from api.v1.venues.views import (
     ConfirmPaymentAPIView,
     InitiatePaymentAPIView,
     LocationSearchAPIView,
+    PolicyTypeListAPIView,
     StripeWebhookAPIView,
     VenueAvailabilityAPIView,
     VenueDetailAPIView,
     VenueListAPIView,
     VenueReviewListAPIView,
+    VenueTypeListAPIView,
 )
 
 
@@ -21,6 +24,21 @@ urlpatterns = [
         "locations/search/",
         LocationSearchAPIView.as_view(),
         name="location-search",
+    ),
+    path(
+        "venue-types/",
+        VenueTypeListAPIView.as_view(),
+        name="venue-type-list",
+    ),
+    path(
+        "amenities/",
+        AmenityListAPIView.as_view(),
+        name="amenity-list",
+    ),
+    path(
+        "policy-types/",
+        PolicyTypeListAPIView.as_view(),
+        name="policy-type-list",
     ),
     path(
         "venues/",

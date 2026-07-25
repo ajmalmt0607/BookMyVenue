@@ -20,7 +20,15 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from apps.common.pagination import StandardPagination
-from apps.venues.models import Booking, Venue, VenuePolicy, VenueTimeSlot
+from apps.venues.models import (
+    Amenity,
+    Booking,
+    PolicyType,
+    Venue,
+    VenuePolicy,
+    VenueTimeSlot,
+    VenueType,
+)
 from apps.venues.services.booking.availability_service import (
     AvailabilityService,
     availability_cache_key,
@@ -33,12 +41,15 @@ from apps.venues.services.reviews.review_service import ReviewService
 
 from api.v1.venues.filters import VenueFilter
 from api.v1.venues.serializers import (
+    AmenitySerializer,
     AvailableSlotSerializer,
     BookingDetailSerializer,
     ConfirmBookingSerializer,
+    PolicyTypeSerializer,
     ReviewSerializer,
     VenueDetailSerializer,
     VenueListSerializer,
+    VenueTypeSerializer,
 )
 
 logger = logging.getLogger(__name__)
@@ -74,6 +85,28 @@ class LocationSearchAPIView(
         return Response(
             locations
         )
+
+
+class VenueTypeListAPIView(ListAPIView):
+
+    permission_classes = [AllowAny]
+    pagination_class = None
+    serializer_class = VenueTypeSerializer
+    queryset = VenueType.objects.filter(is_active=True)
+
+
+class AmenityListAPIView(ListAPIView):
+    permission_classes = [AllowAny]
+    pagination_class = None
+    serializer_class = AmenitySerializer
+    queryset = Amenity.objects.filter(is_active=True)
+
+
+class PolicyTypeListAPIView(ListAPIView):
+    permission_classes = [AllowAny]
+    pagination_class = None
+    serializer_class = PolicyTypeSerializer
+    queryset = PolicyType.objects.filter(is_active=True)
 
 
 class VenueListAPIView(ListAPIView):
@@ -134,11 +167,6 @@ class VenueDetailAPIView(RetrieveAPIView):
 
     def get_queryset(self):
 
-        # Prefetched (not just `.prefetch_related("policies")`) so the
-        # inactive-policy filter and display_order sort happen once here
-        # instead of the serializer re-filtering/sorting in Python, and
-        # `select_related` on the prefetch queryset avoids an N+1 when
-        # VenuePolicySerializer nests each policy's policy_type.
         active_policies = (
             VenuePolicy.objects
             .filter(is_active=True)

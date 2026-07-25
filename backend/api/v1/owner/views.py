@@ -93,7 +93,7 @@ class OwnerVenueListCreateAPIView(generics.ListCreateAPIView):
         return OwnerVenueListSerializer
 
 
-class OwnerVenueDetailAPIView(generics.RetrieveAPIView):
+class OwnerVenueDetailAPIView(generics.RetrieveDestroyAPIView):
     permission_classes = [IsAuthenticated, IsVenueOwner]
     serializer_class = OwnerVenueDetailSerializer
     lookup_url_kwarg = "venue_id"
@@ -106,6 +106,17 @@ class OwnerVenueDetailAPIView(generics.RetrieveAPIView):
                 "images", "amenities", "policies__policy_type", "time_slots"
             )
         )
+
+    def perform_destroy(self, instance):
+        # Mirrors the same DRAFT/REJECTED-only rule as every other mutation
+        # in this module - a PENDING venue is locked for admin review, and
+        # an APPROVED (live) one isn't deletable through this draft flow.
+        if instance.status not in Venue.EDITABLE_STATUSES:
+            raise ValidationError(
+                "This venue cannot be deleted in its current status."
+            )
+
+        instance.delete()
 
 
 class VenueBasicInfoUpdateAPIView(OwnerVenueMixin, generics.UpdateAPIView):
