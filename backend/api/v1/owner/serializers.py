@@ -1,5 +1,3 @@
-from decimal import Decimal
-
 from rest_framework import serializers
 
 from apps.venues.models import Amenity, Booking, PolicyType, Venue, VenueTimeSlot, VenueType
@@ -141,9 +139,6 @@ class VenueBasicInfoSerializer(serializers.ModelSerializer):
         queryset=VenueType.objects.filter(is_active=True),
         required=False,
     )
-    price_per_day = serializers.DecimalField(
-        max_digits=12, decimal_places=2, min_value=Decimal("0.01"), required=False
-    )
 
     class Meta:
         model = Venue
@@ -162,7 +157,6 @@ class VenueBasicInfoSerializer(serializers.ModelSerializer):
             "longitude",
             "min_capacity",
             "max_capacity",
-            "price_per_day",
         ]
 
     def validate(self, attrs):

@@ -34,10 +34,6 @@ export const basicInfoSchema = z.object({
     .number({ invalid_type_error: "Enter the maximum capacity" })
     .int()
     .positive("Must be at least 1"),
-
-  price_per_day: z.coerce
-    .number({ invalid_type_error: "Enter a price" })
-    .positive("Price must be greater than 0"),
 })
   .refine((data) => data.max_capacity >= data.min_capacity, {
     message: "Maximum capacity cannot be less than minimum capacity",

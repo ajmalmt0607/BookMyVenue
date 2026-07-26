@@ -15,6 +15,7 @@ from apps.venues.services.owner.venue_draft_service import (
     VenueSubmissionError,
 )
 from apps.venues.services.owner.venue_image_service import VenueImageService
+from apps.venues.services.owner.venue_time_slot_service import VenueTimeSlotService
 
 from api.v1.accounts.permissions import IsVenueOwner
 from api.v1.owner.serializers import (
@@ -241,6 +242,10 @@ class VenueTimeSlotListCreateAPIView(OwnerVenueMixin, generics.ListCreateAPIView
 
         return context
 
+    def perform_create(self, serializer):
+        serializer.save()
+        VenueTimeSlotService.sync_starting_price(self.venue)
+
 
 class VenueTimeSlotDetailAPIView(
     OwnerVenueMixin, generics.RetrieveUpdateDestroyAPIView
@@ -257,6 +262,14 @@ class VenueTimeSlotDetailAPIView(
         context["venue"] = self.venue
 
         return context
+
+    def perform_update(self, serializer):
+        serializer.save()
+        VenueTimeSlotService.sync_starting_price(self.venue)
+
+    def perform_destroy(self, instance):
+        instance.delete()
+        VenueTimeSlotService.sync_starting_price(self.venue)
 
 
 class VenueDraftProgressAPIView(OwnerVenueMixin, APIView):

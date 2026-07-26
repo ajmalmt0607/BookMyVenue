@@ -144,7 +144,6 @@ const BookingCard = ({ venue }) => {
 
         <p className="mt-1 text-3xl font-bold text-gray-900">
           ₹{Number(venue.price_per_day || 0).toLocaleString()}
-          <span className="text-sm font-medium text-gray-400"> / day</span>
         </p>
       </div>
 

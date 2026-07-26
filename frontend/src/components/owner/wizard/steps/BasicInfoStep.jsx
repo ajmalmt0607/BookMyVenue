@@ -6,7 +6,6 @@ import {
   MapPin,
   Landmark,
   Users,
-  IndianRupee,
 } from "lucide-react";
 
 import InputField from "../../../ui/InputField";
@@ -29,7 +28,6 @@ const FIELD_KEYS = [
   "country",
   "min_capacity",
   "max_capacity",
-  "price_per_day",
 ];
 
 const toFormValues = (venue) => ({
@@ -44,7 +42,6 @@ const toFormValues = (venue) => ({
   country: venue?.country || "India",
   min_capacity: venue?.min_capacity ?? "",
   max_capacity: venue?.max_capacity ?? "",
-  price_per_day: venue?.price_per_day ?? "",
 });
 
 const Field = ({ label, error, children, className = "" }) => (
@@ -226,7 +223,7 @@ const BasicInfoStep = ({ venue, venueId, onBack, onContinue }) => {
           />
         </Field>
 
-        <div className="grid gap-4 sm:grid-cols-3">
+        <div className="grid gap-4 sm:grid-cols-2">
           <Field label="Min Capacity" error={errors.min_capacity}>
             <InputField
               icon={<Users size={18} />}
@@ -244,17 +241,6 @@ const BasicInfoStep = ({ venue, venueId, onBack, onContinue }) => {
               min="1"
               placeholder="300"
               {...register("max_capacity", { valueAsNumber: true })}
-            />
-          </Field>
-
-          <Field label="Price / Day" error={errors.price_per_day}>
-            <InputField
-              icon={<IndianRupee size={18} />}
-              type="number"
-              min="0"
-              step="0.01"
-              placeholder="20000"
-              {...register("price_per_day", { valueAsNumber: true })}
             />
           </Field>
         </div>

@@ -76,7 +76,6 @@ const VenueCard = ({ venue }) => {
 
             <p className="text-xl font-bold text-gray-900">
               ₹{Number(venue.price_per_day).toLocaleString()}
-              <span className="text-xs font-medium text-gray-400"> / day</span>
             </p>
           </div>
 

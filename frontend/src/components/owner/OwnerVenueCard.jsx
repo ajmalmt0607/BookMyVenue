@@ -147,7 +147,7 @@ const OwnerVenueCard = ({ venue, onDelete, deleting }) => {
         <div className="mt-auto flex items-center justify-between border-t border-gray-100 pt-4">
           <p className="text-sm font-semibold text-gray-900">
             {venue.price_per_day
-              ? `${formatCurrency(venue.price_per_day)} / day`
+              ? `Starting from ${formatCurrency(venue.price_per_day)}`
               : "Price not set"}
           </p>
 

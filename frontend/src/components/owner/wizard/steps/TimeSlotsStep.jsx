@@ -112,7 +112,8 @@ const TimeSlotsStep = ({ venue, venueId, onBack, onContinue }) => {
           </h2>
           <p className="mt-1.5 text-gray-500">
             Define the bookable slots for your venue. At least one active
-            slot is required.
+            slot is required. Your venue&apos;s listed starting price is set
+            automatically to the cheapest active slot.
           </p>
         </div>
 

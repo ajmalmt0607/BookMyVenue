@@ -14,7 +14,6 @@ REQUIRED_BASIC_INFO_FIELDS = [
     "state",
     "min_capacity",
     "max_capacity",
-    "price_per_day",
 ]
 
 

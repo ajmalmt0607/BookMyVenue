@@ -73,7 +73,7 @@ const ReviewStep = ({ venue, venueId, onBack, onSubmitted }) => {
 
             <span className="flex items-center gap-1.5 font-semibold text-gray-900">
               <IndianRupee size={15} className="text-red-600" />
-              {Number(venue?.price_per_day || 0).toLocaleString()} / day
+              Starting from {Number(venue?.price_per_day || 0).toLocaleString()}
             </span>
           </div>
         </SummaryCard>
