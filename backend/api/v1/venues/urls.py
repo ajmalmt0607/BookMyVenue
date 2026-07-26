@@ -8,6 +8,7 @@ from api.v1.venues.views import (
     ConfirmBookingAPIView,
     ConfirmPaymentAPIView,
     InitiatePaymentAPIView,
+    LocationReverseGeocodeAPIView,
     LocationSearchAPIView,
     PolicyTypeListAPIView,
     StripeWebhookAPIView,
@@ -24,6 +25,11 @@ urlpatterns = [
         "locations/search/",
         LocationSearchAPIView.as_view(),
         name="location-search",
+    ),
+    path(
+        "locations/reverse/",
+        LocationReverseGeocodeAPIView.as_view(),
+        name="location-reverse-geocode",
     ),
     path(
         "venue-types/",

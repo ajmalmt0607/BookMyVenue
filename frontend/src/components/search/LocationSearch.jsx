@@ -10,6 +10,7 @@ import { searchLocations } from "../../services/locationService";
 const LocationSearch = ({
   value,
   onChange,
+  onSelectLocation,
   placeholder = "Search city or location",
   fetchLocations = searchLocations,
 }) => {
@@ -45,8 +46,6 @@ const LocationSearch = ({
     const trimmed = debouncedQuery.trim();
 
     if (trimmed.length < 2) {
-      // Invalidate any in-flight request; stale results stay in state but
-      // are hidden by `showPanel` gating on the live (non-debounced) query.
       requestIdRef.current += 1;
       return;
     }
@@ -84,6 +83,7 @@ const LocationSearch = ({
     const label = location.location_name || location.full_address || "";
     setQuery(label);
     onChange(label);
+    onSelectLocation?.(location);
     setResults([]);
     setIsOpen(false);
   };

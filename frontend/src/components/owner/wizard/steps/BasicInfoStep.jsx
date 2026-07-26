@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 
 import InputField from "../../../ui/InputField";
+import LocationPicker from "../LocationPicker";
 import WizardFooter from "../WizardFooter";
 
 import { basicInfoSchema } from "../../../../validations/venueWizardValidation";
@@ -24,8 +25,11 @@ const FIELD_KEYS = [
   "location_name",
   "location_address",
   "city",
+  "district",
   "state",
   "country",
+  "latitude",
+  "longitude",
   "min_capacity",
   "max_capacity",
 ];
@@ -38,8 +42,11 @@ const toFormValues = (venue) => ({
   location_name: venue?.location_name || "",
   location_address: venue?.location_address || "",
   city: venue?.city || "",
+  district: venue?.district || "",
   state: venue?.state || "",
   country: venue?.country || "India",
+  latitude: venue?.latitude != null ? Number(venue.latitude) : null,
+  longitude: venue?.longitude != null ? Number(venue.longitude) : null,
   min_capacity: venue?.min_capacity ?? "",
   max_capacity: venue?.max_capacity ?? "",
 });
@@ -64,6 +71,7 @@ const BasicInfoStep = ({ venue, venueId, onBack, onContinue }) => {
   const {
     register,
     handleSubmit,
+    setValue,
     formState: { errors },
   } = useForm({
     resolver: zodResolver(basicInfoSchema),
@@ -86,6 +94,19 @@ const BasicInfoStep = ({ venue, venueId, onBack, onContinue }) => {
       isMounted = false;
     };
   }, []);
+
+  const handleLocationResolve = (resolved) => {
+    const options = { shouldValidate: true, shouldDirty: true };
+
+    setValue("location_name", resolved.location_name || "", options);
+    setValue("location_address", resolved.location_address || "", options);
+    setValue("city", resolved.city || "", options);
+    setValue("district", resolved.district || "", options);
+    setValue("state", resolved.state || "", options);
+    setValue("country", resolved.country || "India", options);
+    setValue("latitude", resolved.latitude, options);
+    setValue("longitude", resolved.longitude, options);
+  };
 
   const submit = async (data) => {
     const payload = FIELD_KEYS.reduce((acc, key) => {
@@ -169,6 +190,33 @@ const BasicInfoStep = ({ venue, venueId, onBack, onContinue }) => {
           />
         </Field>
 
+        <Field
+          label="Pin Your Venue's Location"
+          error={errors.latitude || errors.longitude}
+        >
+          <LocationPicker
+            latitude={venue?.latitude != null ? Number(venue.latitude) : null}
+            longitude={
+              venue?.longitude != null ? Number(venue.longitude) : null
+            }
+            onResolve={handleLocationResolve}
+          />
+
+          <input type="hidden" {...register("latitude", { valueAsNumber: true })} />
+          <input type="hidden" {...register("longitude", { valueAsNumber: true })} />
+          <input type="hidden" {...register("district")} />
+        </Field>
+
+        <Field label="Location Address" error={errors.location_address}>
+          <InputField
+            icon={<MapPin size={18} />}
+            readOnly
+            placeholder="Resolved automatically from the map above"
+            className="cursor-not-allowed text-gray-600"
+            {...register("location_address")}
+          />
+        </Field>
+
         <div className="grid gap-4 sm:grid-cols-2">
           <Field label="State" error={errors.state}>
             <InputField
@@ -212,14 +260,6 @@ const BasicInfoStep = ({ venue, venueId, onBack, onContinue }) => {
               w-full rounded-xl border border-gray-200 bg-gray-50 p-3 text-sm
               outline-none transition-all focus:border-red-500 focus:bg-white
             "
-          />
-        </Field>
-
-        <Field label="Location Address" error={errors.location_address}>
-          <InputField
-            icon={<MapPin size={18} />}
-            placeholder="A detailed address customers will see on the map"
-            {...register("location_address")}
           />
         </Field>
 

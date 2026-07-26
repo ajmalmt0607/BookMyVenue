@@ -12,3 +12,12 @@ class GoogleLocationService(
         raise NotImplementedError(
             "Google provider not implemented yet."
         )
+
+    def reverse_geocode(
+        self,
+        latitude: float,
+        longitude: float,
+    ):
+        raise NotImplementedError(
+            "Google provider not implemented yet."
+        )

@@ -11,3 +11,11 @@ export const searchLocations = async (query) => {
 
   return response.data;
 };
+
+export const reverseGeocode = async (lat, lng) => {
+  const response = await api.get("/venues/locations/reverse/", {
+    params: { lat, lng },
+  });
+
+  return response.data;
+};

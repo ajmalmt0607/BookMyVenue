@@ -87,6 +87,52 @@ class LocationSearchAPIView(
         )
 
 
+class LocationReverseGeocodeAPIView(
+    APIView
+):
+
+    permission_classes = [AllowAny]
+
+    def get(
+        self,
+        request,
+        *args,
+        **kwargs,
+    ):
+
+        latitude = request.GET.get("lat")
+        longitude = request.GET.get("lng")
+
+        try:
+            latitude = float(latitude)
+            longitude = float(longitude)
+
+        except (TypeError, ValueError):
+            return Response(
+                {
+                    "message": "Valid lat and lng query params are required.",
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        service = get_location_service()
+
+        location = service.reverse_geocode(
+            latitude=latitude,
+            longitude=longitude,
+        )
+
+        if location is None:
+            return Response(
+                {
+                    "message": "Couldn't resolve an address for that location.",
+                },
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        return Response(location)
+
+
 class VenueTypeListAPIView(ListAPIView):
 
     permission_classes = [AllowAny]

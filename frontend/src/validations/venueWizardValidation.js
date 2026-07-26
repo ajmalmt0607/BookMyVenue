@@ -11,20 +11,26 @@ export const basicInfoSchema = z.object({
 
   location_name: z.string().min(2, "Enter a location/area name"),
 
-  location_address: z.string().min(5, "Enter the full location address"),
+  location_address: z
+    .string()
+    .min(5, "Pin your venue's location on the map"),
 
   city: z.string().min(2, "Enter a city"),
+
+  district: z.string().optional().nullable(),
 
   state: z.string().min(2, "Enter a state"),
 
   country: z.string().min(2, "Enter a country"),
 
-  // .coerce so this validates correctly regardless of whether the value
-  // came from a fresh keystroke (already a number via RHF's
-  // valueAsNumber) or was pre-filled from the API when resuming a draft
-  // (a string, since DRF serializes DecimalField as text) - without
-  // this, submitting an untouched pre-filled price/capacity field failed
-  // validation with "expected number, received string".
+  latitude: z.number({
+    invalid_type_error: "Pick your venue's location on the map",
+  }),
+
+  longitude: z.number({
+    invalid_type_error: "Pick your venue's location on the map",
+  }),
+
   min_capacity: z.coerce
     .number({ invalid_type_error: "Enter the minimum capacity" })
     .int()

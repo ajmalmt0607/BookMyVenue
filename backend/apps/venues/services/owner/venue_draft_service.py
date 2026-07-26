@@ -12,6 +12,8 @@ REQUIRED_BASIC_INFO_FIELDS = [
     "location_address",
     "city",
     "state",
+    "latitude",
+    "longitude",
     "min_capacity",
     "max_capacity",
 ]
