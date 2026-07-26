@@ -41,7 +41,7 @@ from api.v1.venues.serializers import (
 def _get_owner_venue(request, venue_id, *, require_editable=False):
     venue = get_object_or_404(Venue, id=venue_id, owner=request.user)
 
-    if require_editable and venue.status not in Venue.EDITABLE_STATUSES:
+    if require_editable and venue.status not in Venue.OWNER_EDITABLE_STATUSES:
         raise ValidationError(
             "This venue cannot be edited in its current status."
         )

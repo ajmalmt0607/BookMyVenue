@@ -51,6 +51,13 @@ class Venue(BaseModel):
         REJECTED = "REJECTED", "Rejected"
 
     EDITABLE_STATUSES = [Status.DRAFT, Status.REJECTED]
+    
+    OWNER_EDITABLE_STATUSES = [
+        Status.DRAFT,
+        Status.PENDING,
+        Status.APPROVED,
+        Status.REJECTED,
+    ]
 
     owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="venues")
     venue_type = models.ForeignKey(

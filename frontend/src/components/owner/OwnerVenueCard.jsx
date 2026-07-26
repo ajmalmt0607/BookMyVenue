@@ -9,7 +9,7 @@ import {
 import { getStatusBadgeClasses } from "../../utils/statusBadge";
 import { wizardStepPath } from "../../constants/wizardSteps";
 
-const EDITABLE_STATUSES = ["DRAFT", "REJECTED"];
+const WIZARD_EDITABLE_STATUSES = ["DRAFT", "PENDING", "APPROVED", "REJECTED"];
 
 const DraftCard = ({ venue, onDelete, deleting }) => {
   const navigate = useNavigate();
@@ -91,15 +91,12 @@ const OwnerVenueCard = ({ venue, onDelete, deleting }) => {
     return <DraftCard venue={venue} onDelete={onDelete} deleting={deleting} />;
   }
 
-  const isEditable = EDITABLE_STATUSES.includes(venue.status);
-  const isApproved = venue.status === "APPROVED";
-  const isClickable = isEditable || isApproved;
+  const isClickable = WIZARD_EDITABLE_STATUSES.includes(venue.status);
+  const needsFix = venue.status === "REJECTED";
 
   const handleClick = () => {
-    if (isEditable) {
+    if (isClickable) {
       navigate(wizardStepPath(venue.id, "basic_information"));
-    } else if (isApproved) {
-      navigate(`/venues/${venue.slug}`);
     }
   };
 
@@ -151,7 +148,7 @@ const OwnerVenueCard = ({ venue, onDelete, deleting }) => {
               : "Price not set"}
           </p>
 
-          {isEditable && (
+          {needsFix && (
             <span className="text-xs font-semibold text-red-600">
               Fix &amp; resubmit
             </span>
