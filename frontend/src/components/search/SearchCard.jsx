@@ -7,6 +7,7 @@ import SingleDatePicker from "./SingleDatePicker";
 import GuestSelector from "./GuestSelector";
 import SearchButton from "./SearchButton";
 
+import useVenueTypes from "../../hooks/useVenueTypes";
 import { ROUTES } from "../../constants/routes";
 
 const SEARCH_TRANSITION_MS = 450;
@@ -34,6 +35,7 @@ const SearchCard = () => {
 
   const [isSearching, setIsSearching] = useState(false);
   const searchTimeoutRef = useRef(null);
+  const { options: venueTypeOptions } = useVenueTypes();
 
   useEffect(() => {
     return () => {
@@ -74,6 +76,7 @@ const SearchCard = () => {
         <VenueTypeDropdown
           value={searchData.venueType}
           onChange={updateField("venueType")}
+          options={venueTypeOptions}
         />
 
         <LocationSearch

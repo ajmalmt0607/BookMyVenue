@@ -30,6 +30,7 @@ class VenueTypeSerializer(serializers.ModelSerializer):
         fields = [
             "id",
             "name",
+            "slug",
             "icon",
         ]
 

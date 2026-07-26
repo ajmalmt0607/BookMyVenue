@@ -4,12 +4,11 @@ import { ChevronDown, Search, Check } from "lucide-react";
 import useClickOutside from "../../hooks/useClickOutside";
 import usePopoverPosition from "../../hooks/usePopoverPosition";
 import PopoverPortal from "../ui/PopoverPortal";
-import { VENUE_TYPE_OPTIONS } from "../../constants/venueTypes";
 
 const VenueTypeDropdown = ({
   value,
   onChange,
-  options = VENUE_TYPE_OPTIONS,
+  options,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [query, setQuery] = useState("");

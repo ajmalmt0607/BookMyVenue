@@ -3,7 +3,7 @@ import { createPortal } from "react-dom";
 import { useSearchParams } from "react-router-dom";
 import { SlidersHorizontal, X, MapPin } from "lucide-react";
 
-import { VENUE_TYPE_OPTIONS } from "../../constants/venueTypes";
+import useVenueTypes from "../../hooks/useVenueTypes";
 
 const GUEST_OPTIONS = [50, 100, 250, 500, 1000];
 
@@ -21,6 +21,7 @@ const VenueFilters = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [wasOpen, setWasOpen] = useState(false);
   const [draft, setDraft] = useState(() => readDraft(searchParams));
+  const { options: venueTypeOptions } = useVenueTypes();
 
   // Sync the draft from the applied filters each time the sheet opens.
   // Done during render (rather than an effect) so it lands before the
@@ -206,7 +207,7 @@ const VenueFilters = () => {
                 </h3>
 
                 <div className="flex flex-wrap gap-2">
-                  {VENUE_TYPE_OPTIONS.filter((option) => option.value).map(
+                  {venueTypeOptions.filter((option) => option.value).map(
                     (option) => {
                       const Icon = option.icon;
                       const isSelected = draft.venue_type === option.value;
