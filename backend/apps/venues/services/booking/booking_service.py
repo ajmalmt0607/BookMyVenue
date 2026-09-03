@@ -10,9 +10,7 @@ from apps.venues.services.booking.pricing_service import PricingService
 
 
 class SlotUnavailableError(Exception):
-    """Raised when one or more requested slots were booked by someone
-    else between the client reading availability and this reservation
-    being created."""
+    """Raised when one or more requested slots were booked by someone"""
 
 
 class BookingService:
